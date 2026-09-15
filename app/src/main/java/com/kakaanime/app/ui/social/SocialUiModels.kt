@@ -47,6 +47,35 @@ data class SocialChatUiState(
     val messages: List<SocialChatMessageUi> = emptyList(),
 )
 
+enum class WatchTogetherVisibility(val label: String) {
+    PUBLIC("Public"),
+    PRIVATE("Private"),
+}
+
+data class WatchTogetherParticipantUi(
+    val id: String,
+    val username: String,
+    val status: String = "Ready",
+    val isHost: Boolean = false,
+)
+
+data class WatchTogetherRoomUi(
+    val id: String,
+    val name: String,
+    val animeTitle: String,
+    val episode: Int,
+    val visibility: WatchTogetherVisibility = WatchTogetherVisibility.PUBLIC,
+    val hostName: String = "Akun Saya",
+    val roomCode: String = "",
+    val participants: List<WatchTogetherParticipantUi> = emptyList(),
+    val isLive: Boolean = true,
+)
+
+data class WatchTogetherUiState(
+    val isPremium: Boolean = false,
+    val publicRooms: List<WatchTogetherRoomUi> = emptyList(),
+)
+
 data class SocialUiState(
     val username: String = "Akun Saya",
     val friends: List<SocialFriendUi> = emptyList(),
