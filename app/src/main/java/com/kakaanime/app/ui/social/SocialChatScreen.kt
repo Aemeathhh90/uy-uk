@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -12,7 +13,6 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -22,6 +22,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.EmojiEmotions
+import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Send
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -45,6 +46,7 @@ fun SocialChatScreen(
     state: SocialChatUiState,
     onBack: () -> Unit = {},
     onSendMessage: (String) -> Unit = {},
+    onGroupInfoClick: () -> Unit = {},
 ) {
     var draft by remember { mutableStateOf("") }
     var showEmojiRow by remember { mutableStateOf(false) }
@@ -52,44 +54,27 @@ fun SocialChatScreen(
     val listState = rememberLazyListState()
 
     LaunchedEffect(messages.size, state.chatId) {
-        if (messages.isNotEmpty()) {
-            listState.animateScrollToItem(messages.lastIndex)
-        }
+        if (messages.isNotEmpty()) listState.animateScrollToItem(messages.lastIndex)
     }
 
     Column(Modifier.fillMaxSize()) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 6.dp, vertical = 8.dp),
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 6.dp, vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            IconButton(onClick = onBack) {
-                Icon(Icons.Outlined.ArrowBack, contentDescription = "Kembali")
-            }
+            IconButton(onClick = onBack) { Icon(Icons.Outlined.ArrowBack, "Kembali") }
             Surface(Modifier.size(42.dp), CircleShape, color = MaterialTheme.colorScheme.surfaceVariant) {
                 Box(contentAlignment = Alignment.Center) {
-                    Text(
-                        state.title.take(2).uppercase(),
-                        fontSize = 11.sp,
-                        fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
-                    )
+                    Text(state.title.take(2).uppercase(), fontSize = 11.sp, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold)
                 }
             }
             Spacer(Modifier.width(10.dp))
             Column(Modifier.weight(1f)) {
-                Text(
-                    state.title,
-                    fontSize = 16.sp,
-                    fontWeight = androidx.compose.ui.text.font.FontWeight.ExtraBold,
-                    maxLines = 1,
-                )
-                Text(
-                    state.subtitle,
-                    fontSize = 10.sp,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 1,
-                )
+                Text(state.title, fontSize = 16.sp, fontWeight = androidx.compose.ui.text.font.FontWeight.ExtraBold, maxLines = 1)
+                Text(state.subtitle, fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1)
+            }
+            if (state.isGroup) {
+                IconButton(onClick = onGroupInfoClick) { Icon(Icons.Outlined.Info, "Info grup") }
             }
         }
 
@@ -99,16 +84,12 @@ fun SocialChatScreen(
             contentPadding = PaddingValues(horizontal = 14.dp, vertical = 12.dp),
             verticalArrangement = Arrangement.spacedBy(7.dp),
         ) {
-            items(messages, key = { it.id }) { message ->
-                ChatBubble(message)
-            }
+            items(messages, key = { it.id }) { message -> ChatBubble(message) }
         }
 
         if (showEmojiRow) {
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 12.dp, vertical = 4.dp),
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 4.dp),
                 horizontalArrangement = Arrangement.spacedBy(6.dp),
             ) {
                 listOf("😀", "😂", "😍", "😭", "🔥", "❤️", "👍", "✨").forEach { emoji ->
@@ -116,28 +97,16 @@ fun SocialChatScreen(
                         onClick = { draft += emoji },
                         shape = RoundedCornerShape(14.dp),
                         color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = .55f),
-                    ) {
-                        Text(
-                            emoji,
-                            Modifier.padding(horizontal = 8.dp, vertical = 6.dp),
-                            fontSize = 17.sp,
-                        )
-                    }
+                    ) { Text(emoji, Modifier.padding(horizontal = 8.dp, vertical = 6.dp), fontSize = 17.sp) }
                 }
             }
         }
 
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .imePadding()
-                .navigationBarsPadding()
-                .padding(horizontal = 10.dp, vertical = 8.dp),
+            modifier = Modifier.fillMaxWidth().imePadding().navigationBarsPadding().padding(horizontal = 10.dp, vertical = 8.dp),
             verticalAlignment = Alignment.Bottom,
         ) {
-            IconButton(onClick = { showEmojiRow = !showEmojiRow }) {
-                Icon(Icons.Outlined.EmojiEmotions, contentDescription = "Emoji")
-            }
+            IconButton(onClick = { showEmojiRow = !showEmojiRow }) { Icon(Icons.Outlined.EmojiEmotions, "Emoji") }
             OutlinedTextField(
                 value = draft,
                 onValueChange = { draft = it },
@@ -152,21 +121,13 @@ fun SocialChatScreen(
                 onClick = {
                     val message = draft.trim()
                     if (message.isNotEmpty()) {
-                        messages = messages + SocialChatMessageUi(
-                            id = "local-${messages.size + 1}",
-                            senderName = "Akun Saya",
-                            text = message,
-                            timeLabel = "Baru saja",
-                            isMine = true,
-                        )
+                        messages = messages + SocialChatMessageUi("local-${messages.size + 1}", "Akun Saya", message, "Baru saja", true)
                         onSendMessage(message)
                         draft = ""
                         showEmojiRow = false
                     }
                 },
-            ) {
-                Icon(Icons.Outlined.Send, contentDescription = "Kirim")
-            }
+            ) { Icon(Icons.Outlined.Send, "Kirim") }
         }
     }
 }
@@ -179,36 +140,22 @@ private fun ChatBubble(message: SocialChatMessageUi) {
     ) {
         Column(horizontalAlignment = if (message.isMine) Alignment.End else Alignment.Start) {
             if (!message.isMine && message.senderName.isNotBlank()) {
-                Text(
-                    message.senderName,
-                    fontSize = 9.sp,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(horizontal = 8.dp),
-                )
+                Text(message.senderName, fontSize = 9.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(horizontal = 8.dp))
                 Spacer(Modifier.height(2.dp))
             }
             Surface(
                 shape = RoundedCornerShape(
-                    topStart = 18.dp,
-                    topEnd = 18.dp,
+                    topStart = 18.dp, topEnd = 18.dp,
                     bottomStart = if (message.isMine) 18.dp else 5.dp,
                     bottomEnd = if (message.isMine) 5.dp else 18.dp,
                 ),
-                color = if (message.isMine) {
-                    MaterialTheme.colorScheme.primaryContainer
-                } else {
-                    MaterialTheme.colorScheme.surfaceVariant.copy(alpha = .58f)
-                },
+                color = if (message.isMine) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = .58f),
             ) {
                 Column(Modifier.padding(horizontal = 13.dp, vertical = 9.dp)) {
                     Text(message.text, fontSize = 13.sp)
                     if (message.timeLabel.isNotBlank()) {
                         Spacer(Modifier.height(3.dp))
-                        Text(
-                            message.timeLabel,
-                            fontSize = 8.sp,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
+                        Text(message.timeLabel, fontSize = 8.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }
             }
