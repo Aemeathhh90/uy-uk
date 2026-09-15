@@ -93,7 +93,10 @@ private fun KakaUiShell(themeState: KakaThemeState) {
                     onBack = { overlay = null },
                     onSave = { profile = it; overlay = null },
                 )
-                overlay == OverlayScreen.THEME -> ThemeCustomizationScreen(state = themeState)
+                overlay == OverlayScreen.THEME -> ThemeCustomizationScreen(
+                    state = themeState,
+                    onBack = { overlay = null },
+                )
                 showMonetization -> DiamondPremiumScreen(state = monetizationState, onWatchAd = {}, onPremiumClick = {})
                 selectedAnime != null -> {
                     val anime = selectedAnime!!
