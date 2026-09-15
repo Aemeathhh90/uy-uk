@@ -6,10 +6,7 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import com.kakaanime.app.ui.detail.AnimeDetailScreen
 import com.kakaanime.app.ui.detail.AnimeDetailUi
@@ -19,6 +16,8 @@ import com.kakaanime.app.ui.home.ContinueWatchingUi
 import com.kakaanime.app.ui.home.HomeAnimeUi
 import com.kakaanime.app.ui.home.HomeUiState
 import com.kakaanime.app.ui.home.HomeV1Screen
+import com.kakaanime.app.ui.library.LibraryScreen
+import com.kakaanime.app.ui.library.LibraryUiState
 import com.kakaanime.app.ui.theme.KakaAnimeTheme
 import com.kakaanime.app.ui.theme.rememberKakaThemeState
 
@@ -32,10 +31,11 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-@androidx.compose.runtime.Composable
+@Composable
 private fun KakaUiShell() {
     var selectedTab by remember { mutableStateOf(KakaTab.HOME) }
     var selectedAnime by remember { mutableStateOf<HomeAnimeUi?>(null) }
+    var favorites by remember { mutableStateOf(setOf("solo-leveling")) }
 
     Scaffold(
         bottomBar = {
@@ -51,24 +51,34 @@ private fun KakaUiShell() {
                     anime = demoDetail(anime),
                     episodes = demoEpisodes(),
                     seasons = listOf(SeasonUi("s1", "Season 1"), SeasonUi("s2", "Season 2")),
-                    isFavorite = false,
+                    isFavorite = anime.id in favorites,
                     onBack = { selectedAnime = null },
-                    onToggleFavorite = {},
+                    onToggleFavorite = {
+                        favorites = if (anime.id in favorites) favorites - anime.id else favorites + anime.id
+                    },
                     onEpisodeClick = {},
                     onSeasonSelected = {},
                     onEpisodeGate = {},
                 )
-            } else if (selectedTab == KakaTab.HOME) {
-                HomeV1Screen(
-                    state = demoHomeState(),
-                    onAnimeClick = { selectedAnime = it },
-                    onContinueWatchingClick = { selectedAnime = it.anime },
-                    onProfileClick = {},
-                    onNotificationsClick = {},
-                    onDiamondClick = {},
-                    onPremiumClick = {},
-                    onWatchTogetherClick = {},
-                )
+            } else {
+                when (selectedTab) {
+                    KakaTab.HOME -> HomeV1Screen(
+                        state = demoHomeState(),
+                        onAnimeClick = { selectedAnime = it },
+                        onContinueWatchingClick = { selectedAnime = it.anime },
+                        onProfileClick = {},
+                        onNotificationsClick = {},
+                        onDiamondClick = {},
+                        onPremiumClick = {},
+                        onWatchTogetherClick = {},
+                    )
+                    KakaTab.LIBRARY -> LibraryScreen(
+                        state = LibraryUiState(favorites = demoHomeState().anime.filter { it.id in favorites }),
+                        onAnimeClick = { selectedAnime = it },
+                        onFavoriteToggle = { anime -> favorites = favorites - anime.id },
+                    )
+                    else -> Box(Modifier) {}
+                }
             }
         }
     }
