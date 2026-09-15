@@ -74,8 +74,8 @@ private fun KakaUiShell() {
                         state = demoOtherProfile(selectedUserId!!),
                         onBack = { selectedUserId = null },
                         onFollowToggle = {},
-                        onAnimeClick = { id ->
-                            demoHomeState().anime.firstOrNull { it.id == id }?.let { selectedAnime = it }
+                        onAnimeClick = { value ->
+                            demoHomeState().anime.firstOrNull { it.id == value || it.title == value }?.let { selectedAnime = it }
                         },
                     )
                 }
