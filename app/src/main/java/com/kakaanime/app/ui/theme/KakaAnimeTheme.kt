@@ -14,6 +14,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -91,11 +92,48 @@ fun KakaAnimeTheme(themeState: KakaThemeState = rememberKakaThemeState(), conten
     val background = if (useOled) Color.Black else if (isDark) Color(0xFF090D12) else Color(0xFFF5F8FC)
     val surface = if (useOled) Color.Black else if (isDark) Color(0xFF111820) else Color.White
     val surfaceVariant = if (useOled) Color(0xFF101010) else if (isDark) Color(0xFF17212B) else Color(0xFFE9F0F7)
+
+    val primary = themeState.accent.primary
+    val secondary = themeState.accent.secondary
+    val onPrimary = if (primary.luminance() > 0.55f) Color.Black else Color.White
+    val onSecondary = if (secondary.luminance() > 0.55f) Color.Black else Color.White
+    val primaryContainer = primary.copy(alpha = if (isDark) .22f else .14f)
+    val secondaryContainer = secondary.copy(alpha = if (isDark) .20f else .14f)
+
     val colors = if (isDark) {
-        darkColorScheme(primary = themeState.accent.primary, secondary = themeState.accent.secondary, background = background, surface = surface, surfaceVariant = surfaceVariant)
+        darkColorScheme(
+            primary = primary,
+            onPrimary = onPrimary,
+            primaryContainer = primaryContainer,
+            onPrimaryContainer = primary,
+            secondary = secondary,
+            onSecondary = onSecondary,
+            secondaryContainer = secondaryContainer,
+            onSecondaryContainer = secondary,
+            tertiary = secondary,
+            onTertiary = onSecondary,
+            background = background,
+            surface = surface,
+            surfaceVariant = surfaceVariant,
+        )
     } else {
-        lightColorScheme(primary = themeState.accent.primary, secondary = themeState.accent.secondary, background = background, surface = surface, surfaceVariant = surfaceVariant)
+        lightColorScheme(
+            primary = primary,
+            onPrimary = onPrimary,
+            primaryContainer = primaryContainer,
+            onPrimaryContainer = primary,
+            secondary = secondary,
+            onSecondary = onSecondary,
+            secondaryContainer = secondaryContainer,
+            onSecondaryContainer = secondary,
+            tertiary = secondary,
+            onTertiary = onSecondary,
+            background = background,
+            surface = surface,
+            surfaceVariant = surfaceVariant,
+        )
     }
+
     CompositionLocalProvider(LocalKakaThemeState provides themeState) {
         MaterialTheme(colorScheme = colors, typography = if (themeState.deviceFont) Typography() else KakaTypography, content = content)
     }
