@@ -8,6 +8,8 @@ data class CalendarEpisodeUi(
     val episode: Int,
     val timeLabel: String = "",
     val isNew: Boolean = true,
+    val statusLabel: String = "Aired",
+    val countdownLabel: String = "",
 )
 
 data class CalendarDayUi(
@@ -15,6 +17,7 @@ data class CalendarDayUi(
     val label: String,
     val dateLabel: String,
     val episodes: List<CalendarEpisodeUi> = emptyList(),
+    val isToday: Boolean = false,
 )
 
 data class CalendarUiState(
