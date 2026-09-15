@@ -23,6 +23,7 @@ import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material.icons.outlined.Contrast
 import androidx.compose.material.icons.outlined.Devices
 import androidx.compose.material.icons.outlined.FormatSize
+import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.Palette
 import androidx.compose.material.icons.outlined.Preview
 import androidx.compose.material.icons.outlined.Smartphone
@@ -51,11 +52,13 @@ import androidx.compose.ui.unit.sp
 @Composable
 fun ThemeCustomizationScreen(
     state: KakaThemeState,
+    isPremium: Boolean = false,
     onBack: () -> Unit = {},
     onAccentSelected: (KakaAccent) -> Unit = { state.accent = it },
     onModeSelected: (KakaThemeMode) -> Unit = { state.mode = it },
 ) {
     var customColorEnabled by remember { mutableStateOf(false) }
+    val allowedFreeModes = setOf(KakaThemeMode.LIGHT, KakaThemeMode.DARK)
 
     Column(
         modifier = Modifier
@@ -72,15 +75,18 @@ fun ThemeCustomizationScreen(
             Icon(Icons.Outlined.Palette, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
         }
 
-        AppearanceSection("Theme Mode", "Choose your preferred theme mode", Icons.Outlined.Contrast) {
+        AppearanceSection("Theme Mode", "Choose your preferred theme mode") {
             Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                KakaThemeMode.entries.forEach { mode ->
+                KakaThemeMode.entries.filter { isPremium || it in allowedFreeModes }.forEach { mode ->
                     FilterChip(selected = state.mode == mode, onClick = { onModeSelected(mode) }, label = { Text(mode.label) })
                 }
             }
+            if (!isPremium) {
+                PremiumHint("Free: Dark dan White/Light. Upgrade ke Premium untuk mode tambahan.")
+            }
         }
 
-        AppearanceSection("Accent Color", "Choose a color to personalize your experience", Icons.Outlined.Palette) {
+        AppearanceSection("Accent Color", "Choose a color to personalize your experience", locked = !isPremium) {
             AccentGrid(state.accent, onAccentSelected)
             Surface(onClick = { customColorEnabled = !customColorEnabled }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(KakaTokens.smallRadius), color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = .42f)) {
                 Row(Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -95,24 +101,24 @@ fun ThemeCustomizationScreen(
             }
         }
 
-        AppearanceSection("Smart Colors", "Let KakaAnime adapt its palette", Icons.Outlined.Wallpaper) {
+        AppearanceSection("Smart Colors", "Let KakaAnime adapt its palette", Icons.Outlined.Wallpaper, locked = !isPremium) {
             SettingSwitchRow("Material You", "Use colors from your device wallpaper", state.materialYou, { state.materialYou = it }, Icons.Outlined.Smartphone)
             SettingSwitchRow("Anime/Manga Theme", "Use colors from the current anime artwork", state.animeDynamicTheme, { state.animeDynamicTheme = it }, Icons.Outlined.Palette)
         }
 
-        AppearanceSection("Visual Effects", "Optional effects for a more premium interface", Icons.Outlined.Preview) {
+        AppearanceSection("Visual Effects", "Optional effects for a more premium interface", Icons.Outlined.Preview, locked = !isPremium) {
             SettingSwitchRow("Liquid Glass", "Use translucent glass effects on supported surfaces", state.liquidGlass, { state.liquidGlass = it }, Icons.Outlined.Preview)
             SettingSwitchRow("Use Device Font", "Use your system font instead of KakaAnime's default", state.deviceFont, { state.deviceFont = it }, Icons.Outlined.FormatSize)
         }
 
-        AppearanceSection("OLED Theme", "Pure black for AMOLED displays", Icons.Outlined.Devices) {
+        AppearanceSection("OLED Theme", "Pure black for AMOLED displays", Icons.Outlined.Devices, locked = !isPremium) {
             SettingSwitchRow("OLED / Pure Black", "Reduce illuminated pixels on supported AMOLED screens", state.oled, {
                 state.oled = it
                 if (it) state.mode = KakaThemeMode.DARK
             }, Icons.Outlined.Contrast)
         }
 
-        AppearanceSection("UI Scale", "Adjust the size and density of UI elements", Icons.Outlined.FormatSize) {
+        AppearanceSection("UI Scale", "Adjust the size and density of UI elements", Icons.Outlined.FormatSize, locked = !isPremium) {
             Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 KakaUiScale.entries.forEach { scale ->
                     FilterChip(selected = state.uiScale == scale, onClick = { state.uiScale = scale }, label = { Text(scale.label) })
@@ -120,7 +126,7 @@ fun ThemeCustomizationScreen(
             }
         }
 
-        AppearanceSection("Theme Variant", "Optional finishing style", Icons.Outlined.Palette) {
+        AppearanceSection("Theme Variant", "Optional finishing style", Icons.Outlined.Palette, locked = !isPremium) {
             Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 KakaThemeVariant.entries.forEach { variant ->
                     FilterChip(selected = state.variant == variant, onClick = { state.variant = variant }, label = { Text(variant.label) })
@@ -128,7 +134,7 @@ fun ThemeCustomizationScreen(
             }
         }
 
-        AppearanceSection("Preview", "See how your settings look in the app", Icons.Outlined.Preview) { AppearancePreview(state) }
+        AppearanceSection("Preview", "See how your settings look in the app", Icons.Outlined.Preview, locked = !isPremium) { AppearancePreview(state) }
 
         Surface(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(KakaTokens.cardRadius), color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = .34f)) {
             Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -145,19 +151,58 @@ fun ThemeCustomizationScreen(
 }
 
 @Composable
-private fun AppearanceSection(title: String, subtitle: String, icon: androidx.compose.ui.graphics.vector.ImageVector, content: @Composable () -> Unit) {
+private fun AppearanceSection(
+    title: String,
+    subtitle: String,
+    icon: androidx.compose.ui.graphics.vector.ImageVector = Icons.Outlined.Palette,
+    locked: Boolean = false,
+    content: @Composable () -> Unit,
+) {
     Surface(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(KakaTokens.cardRadius), color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = .30f), tonalElevation = if (LocalKakaThemeState.current.liquidGlass) 0.dp else 1.dp) {
-        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
-                Spacer(Modifier.width(12.dp))
-                Column {
-                    Text(title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                    Text(subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Box {
+            Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                    Spacer(Modifier.width(12.dp))
+                    Column(Modifier.weight(1f)) {
+                        Text(title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                        Text(subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                }
+                content()
+            }
+            if (locked) {
+                Surface(
+                    modifier = Modifier
+                        .matchParentSize()
+                        .clip(RoundedCornerShape(KakaTokens.cardRadius)),
+                    color = MaterialTheme.colorScheme.background.copy(alpha = .58f),
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Surface(
+                            shape = RoundedCornerShape(99.dp),
+                            color = MaterialTheme.colorScheme.surface,
+                            tonalElevation = 3.dp,
+                        ) {
+                            Row(Modifier.padding(horizontal = 12.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+                                Icon(Icons.Outlined.Lock, contentDescription = "Premium", modifier = Modifier.size(16.dp), tint = MaterialTheme.colorScheme.primary)
+                                Spacer(Modifier.width(7.dp))
+                                Text("Premium", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+                            }
+                        }
+                    }
                 }
             }
-            content()
         }
+    }
+}
+
+@Composable
+private fun PremiumHint(text: String) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Icon(Icons.Outlined.Lock, contentDescription = null, modifier = Modifier.size(15.dp), tint = MaterialTheme.colorScheme.primary)
+        Spacer(Modifier.width(7.dp))
+        Text(text, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
 
