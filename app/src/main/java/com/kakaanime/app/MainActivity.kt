@@ -39,9 +39,14 @@ import com.kakaanime.app.ui.profile.EditProfileUiState
 import com.kakaanime.app.ui.profile.MyProfileScreen
 import com.kakaanime.app.ui.profile.OtherUserProfileScreen
 import com.kakaanime.app.ui.profile.ProfileUiState
+import com.kakaanime.app.ui.social.SocialChatGroupUi
+import com.kakaanime.app.ui.social.SocialChatMessageUi
+import com.kakaanime.app.ui.social.SocialChatScreen
+import com.kakaanime.app.ui.social.SocialChatUiState
 import com.kakaanime.app.ui.social.SocialScreen
 import com.kakaanime.app.ui.social.SocialUiState
 import com.kakaanime.app.ui.social.SocialFriendUi
+import com.kakaanime.app.ui.social.SocialMessageUi
 import com.kakaanime.app.ui.theme.KakaAnimeTheme
 import com.kakaanime.app.ui.theme.KakaThemeState
 import com.kakaanime.app.ui.theme.ThemeCustomizationScreen
@@ -67,8 +72,9 @@ private sealed interface KakaDestination {
     data object Library : KakaDestination { override val rank = 3 }
     data object Profile : KakaDestination { override val rank = 4 }
     data class OtherProfile(val userId: String) : KakaDestination { override val rank = 5 }
-    data class Detail(val anime: HomeAnimeUi) : KakaDestination { override val rank = 6 }
-    data object Monetization : KakaDestination { override val rank = 7 }
+    data class Chat(val state: SocialChatUiState) : KakaDestination { override val rank = 6 }
+    data class Detail(val anime: HomeAnimeUi) : KakaDestination { override val rank = 7 }
+    data object Monetization : KakaDestination { override val rank = 8 }
 }
 
 @Composable
@@ -77,6 +83,7 @@ private fun KakaUiShell(themeState: KakaThemeState) {
     var selectedAnime by remember { mutableStateOf<HomeAnimeUi?>(null) }
     var favorites by remember { mutableStateOf(setOf("solo-leveling")) }
     var selectedUserId by remember { mutableStateOf<String?>(null) }
+    var selectedChat by remember { mutableStateOf<SocialChatUiState?>(null) }
     var showMonetization by remember { mutableStateOf(false) }
     var gateReason by remember { mutableStateOf<EpisodeAccessReason?>(null) }
     var overlay by remember { mutableStateOf<OverlayScreen?>(null) }
@@ -90,12 +97,13 @@ private fun KakaUiShell(themeState: KakaThemeState) {
     }
     val monetizationState = MonetizationUiState(diamonds = 6, isPremium = false)
 
-    val hasNestedUi = gateReason != null || overlay != null || showMonetization || selectedAnime != null || selectedUserId != null || selectedTab != KakaTab.HOME
+    val hasNestedUi = gateReason != null || overlay != null || showMonetization || selectedAnime != null || selectedUserId != null || selectedChat != null || selectedTab != KakaTab.HOME
     BackHandler(enabled = hasNestedUi) {
         when {
             gateReason != null -> gateReason = null
             overlay != null -> overlay = null
             showMonetization -> showMonetization = false
+            selectedChat != null -> selectedChat = null
             selectedAnime != null -> selectedAnime = null
             selectedUserId != null -> selectedUserId = null
             selectedTab != KakaTab.HOME -> {
@@ -106,6 +114,7 @@ private fun KakaUiShell(themeState: KakaThemeState) {
     }
 
     val destination: KakaDestination = when {
+        selectedChat != null -> KakaDestination.Chat(selectedChat!!)
         selectedAnime != null -> KakaDestination.Detail(selectedAnime!!)
         selectedUserId != null -> KakaDestination.OtherProfile(selectedUserId!!)
         showMonetization -> KakaDestination.Monetization
@@ -119,7 +128,7 @@ private fun KakaUiShell(themeState: KakaThemeState) {
     }
 
     Scaffold(
-        bottomBar = { if (selectedAnime == null && selectedUserId == null && !showMonetization && overlay == null) KakaBottomNavigation(selectedTab = selectedTab, onTabSelected = { profileFromAvatar = false; selectedTab = it }) },
+        bottomBar = { if (selectedAnime == null && selectedUserId == null && selectedChat == null && !showMonetization && overlay == null) KakaBottomNavigation(selectedTab = selectedTab, onTabSelected = { profileFromAvatar = false; selectedTab = it }) },
     ) { padding ->
         Box(Modifier.padding(padding)) {
             if (overlay == null) {
@@ -128,12 +137,18 @@ private fun KakaUiShell(themeState: KakaThemeState) {
                     rank = { it.rank },
                     deepNavigation = { from, to ->
                         from is KakaDestination.Detail || to is KakaDestination.Detail ||
+                            from is KakaDestination.Chat || to is KakaDestination.Chat ||
                             from is KakaDestination.OtherProfile || to is KakaDestination.OtherProfile ||
                             from is KakaDestination.Monetization || to is KakaDestination.Monetization ||
                             (profileFromAvatar && (to is KakaDestination.Profile || from is KakaDestination.Profile))
                     },
                 ) { target ->
                     when (target) {
+                        is KakaDestination.Chat -> SocialChatScreen(
+                            state = target.state,
+                            onBack = { selectedChat = null },
+                            onSendMessage = {},
+                        )
                         is KakaDestination.Detail -> {
                             val anime = target.anime
                             AnimeDetailScreen(
@@ -159,7 +174,16 @@ private fun KakaUiShell(themeState: KakaThemeState) {
                             onNotificationsClick = { overlay = OverlayScreen.NOTIFICATIONS },
                             onDiamondClick = { showMonetization = true }, onPremiumClick = { showMonetization = true }, onWatchTogetherClick = {},
                         )
-                        KakaDestination.Social -> SocialScreen(state = demoSocialState(profile.username), onProfileClick = { selectedUserId = it }, onWatchTogetherClick = {})
+                        KakaDestination.Social -> {
+                            val socialState = demoSocialState(profile.username)
+                            SocialScreen(
+                                state = socialState,
+                                onProfileClick = { selectedUserId = it },
+                                onWatchTogetherClick = {},
+                                onMessageClick = { selectedChat = demoDirectChat(it) },
+                                onGroupClick = { selectedChat = demoGroupChat(it) },
+                            )
+                        }
                         KakaDestination.Library -> LibraryScreen(
                             state = LibraryUiState(favorites = demoHomeState().anime.filter { it.id in favorites }),
                             onAnimeClick = { selectedAnime = it }, onFavoriteToggle = { anime -> favorites = favorites - anime.id },
@@ -223,7 +247,50 @@ private fun KakaUiShell(themeState: KakaThemeState) {
     }
 }
 
-private fun demoSocialState(username: String) = SocialUiState(username = username, globalOnlineCount = 128, animeRoomCount = 12, friends = listOf(SocialFriendUi("rin", "Rin", "Online"), SocialFriendUi("yuki", "Yuki", "Nonton One Piece"), SocialFriendUi("akira", "Akira", "Online")))
+private fun demoSocialState(username: String) = SocialUiState(
+    username = username,
+    globalOnlineCount = 128,
+    animeRoomCount = 12,
+    friends = listOf(
+        SocialFriendUi("rin", "Rin", "Online"),
+        SocialFriendUi("yuki", "Yuki", "Nonton One Piece"),
+        SocialFriendUi("akira", "Akira", "Online"),
+    ),
+    messages = listOf(
+        SocialMessageUi("m-rin", "Rin", "Episode barunya gila sih", "Baru saja", 2),
+        SocialMessageUi("m-yuki", "Yuki", "Nanti nonton bareng?", "5 mnt", 0),
+        SocialMessageUi("m-akira", "Akira", "Aku baru selesai Solo Leveling", "12 mnt", 0),
+    ),
+    chatGroups = listOf(
+        SocialChatGroupUi("g-op", "One Piece Indonesia", 184, "Chapter barunya rame", "3 mnt", 4),
+        SocialChatGroupUi("g-sl", "Solo Leveling", 96, "Sung Jinwoo lagi dibahas", "18 mnt", 0),
+        SocialChatGroupUi("g-jjk", "Jujutsu Kaisen", 121, "Ada teori baru", "32 mnt", 1),
+    ),
+)
+
+private fun demoDirectChat(message: SocialMessageUi) = SocialChatUiState(
+    chatId = message.id,
+    title = message.username,
+    subtitle = "Online",
+    messages = listOf(
+        SocialChatMessageUi("1", message.username, message.preview, "Baru saja"),
+        SocialChatMessageUi("2", "Akun Saya", "Iya, seru banget. 😭", "Baru saja", true),
+        SocialChatMessageUi("3", message.username, "Wajib lanjut sampai episode terbaru.", "1 mnt lalu"),
+    ),
+)
+
+private fun demoGroupChat(group: SocialChatGroupUi) = SocialChatUiState(
+    chatId = group.id,
+    title = group.name,
+    subtitle = "${group.memberCount} anggota • Grup anime",
+    isGroup = true,
+    messages = listOf(
+        SocialChatMessageUi("1", "Rin", group.lastMessage, "${group.timeLabel} lalu"),
+        SocialChatMessageUi("2", "Yuki", "Menurut kalian episode terbaru gimana?", "2 mnt lalu"),
+        SocialChatMessageUi("3", "Akun Saya", "Bagian akhirnya bikin penasaran banget.", "Baru saja", true),
+    ),
+)
+
 private fun demoMyProfile(favorites: Set<String>, profile: EditProfileUiState) = ProfileUiState(userId = "self", username = profile.username, bio = profile.bio, status = profile.status, favorites = demoHomeState().anime.filter { it.id in favorites }, watchingTitles = listOf("One Piece"), watchedCount = 42, favoriteCount = favorites.size, followingCount = 8, isSelf = true)
 private fun demoOtherProfile(userId: String) = ProfileUiState(userId = userId, username = when (userId) { "rin" -> "Rin"; "yuki" -> "Yuki"; else -> "Akira" }, bio = "Suka anime action dan fantasy.", status = "Online", favorites = demoHomeState().anime.take(2), watchingTitles = listOf("Solo Leveling"), watchedCount = 86, favoriteCount = 2, followingCount = 21, isSelf = false, isFollowing = false)
 private fun demoDetail(anime: HomeAnimeUi) = AnimeDetailUi(id = anime.id, title = anime.title, description = "Cerita ${anime.title} dengan petualangan, konflik, dan karakter yang terus berkembang.", genre = anime.genre, year = "2026", type = "TV", status = anime.status, studio = "Kaka Studio", season = "Season 1", rating = anime.rating, posterUrl = anime.posterUrl)
