@@ -23,6 +23,8 @@ fun SocialScreen(
     state: SocialUiState,
     onProfileClick: (String) -> Unit = {},
     onWatchTogetherClick: () -> Unit = {},
+    onMessageClick: (SocialMessageUi) -> Unit = {},
+    onGroupClick: (SocialChatGroupUi) -> Unit = {},
 ) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -61,7 +63,7 @@ fun SocialScreen(
                 }
             }
         }
-        item { SocialConversationCarousel(messages = state.messages, groups = state.chatGroups) }
+        item { SocialConversationCarousel(messages = state.messages, groups = state.chatGroups, onMessageClick = onMessageClick, onGroupClick = onGroupClick) }
         item { Text("Active Friends", fontSize = 18.sp, fontWeight = androidx.compose.ui.text.font.FontWeight.ExtraBold) }
         if (state.friends.isEmpty()) {
             item {
@@ -87,7 +89,12 @@ fun SocialScreen(
 }
 
 @Composable
-private fun SocialConversationCarousel(messages: List<SocialMessageUi>, groups: List<SocialChatGroupUi>) {
+private fun SocialConversationCarousel(
+    messages: List<SocialMessageUi>,
+    groups: List<SocialChatGroupUi>,
+    onMessageClick: (SocialMessageUi) -> Unit,
+    onGroupClick: (SocialChatGroupUi) -> Unit,
+) {
     LazyRow(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(12.dp),
@@ -97,7 +104,7 @@ private fun SocialConversationCarousel(messages: List<SocialMessageUi>, groups: 
             ConversationListCard("Recently Message", Modifier.width(340.dp)) {
                 if (messages.isEmpty()) ConversationEmpty("Belum ada percakapan terbaru.")
                 else messages.take(5).forEachIndexed { index, message ->
-                    MessageRow(message)
+                    MessageRow(message, onClick = { onMessageClick(message) })
                     if (index < minOf(messages.size, 5) - 1) ConversationDivider()
                 }
             }
@@ -106,7 +113,7 @@ private fun SocialConversationCarousel(messages: List<SocialMessageUi>, groups: 
             ConversationListCard("Chat Group", Modifier.width(340.dp)) {
                 if (groups.isEmpty()) ConversationEmpty("Belum ada grup anime.")
                 else groups.take(5).forEachIndexed { index, group ->
-                    GroupRow(group)
+                    GroupRow(group, onClick = { onGroupClick(group) })
                     if (index < minOf(groups.size, 5) - 1) ConversationDivider()
                 }
             }
@@ -138,8 +145,8 @@ private fun ConversationDivider() = HorizontalDivider(
 private fun ConversationEmpty(text: String) = Text(text, Modifier.padding(vertical = 16.dp), fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
 
 @Composable
-private fun MessageRow(message: SocialMessageUi) {
-    Row(Modifier.fillMaxWidth().padding(vertical = 7.dp), verticalAlignment = Alignment.CenterVertically) {
+private fun MessageRow(message: SocialMessageUi, onClick: () -> Unit) {
+    Row(Modifier.fillMaxWidth().clickable(onClick = onClick).padding(vertical = 7.dp), verticalAlignment = Alignment.CenterVertically) {
         Surface(Modifier.size(40.dp), CircleShape, color = MaterialTheme.colorScheme.surface) {
             Box(contentAlignment = Alignment.Center) { Text(message.username.take(2).uppercase(), fontSize = 11.sp, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold) }
         }
@@ -156,8 +163,8 @@ private fun MessageRow(message: SocialMessageUi) {
 }
 
 @Composable
-private fun GroupRow(group: SocialChatGroupUi) {
-    Row(Modifier.fillMaxWidth().padding(vertical = 7.dp), verticalAlignment = Alignment.CenterVertically) {
+private fun GroupRow(group: SocialChatGroupUi, onClick: () -> Unit) {
+    Row(Modifier.fillMaxWidth().clickable(onClick = onClick).padding(vertical = 7.dp), verticalAlignment = Alignment.CenterVertically) {
         Surface(Modifier.size(40.dp), RoundedCornerShape(12.dp), color = MaterialTheme.colorScheme.surface) {
             Box(contentAlignment = Alignment.Center) { Text(group.name.take(2).uppercase(), fontSize = 11.sp, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold) }
         }
