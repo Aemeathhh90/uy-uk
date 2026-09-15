@@ -68,6 +68,11 @@ fun DiamondPremiumScreen(
     }
 }
 
+/**
+ * Compact episode access gate.
+ * Keep this dialog focused on one decision: unlock this episode or dismiss.
+ * Reward/billing execution stays outside the UI repository.
+ */
 @Composable
 fun EpisodeGateDialog(
     reason: EpisodeAccessReason,
@@ -76,22 +81,53 @@ fun EpisodeGateDialog(
     onPremiumClick: () -> Unit = {},
     onDismiss: () -> Unit = {},
 ) {
-    Surface(shape = RoundedCornerShape(24.dp), tonalElevation = 6.dp, modifier = Modifier.padding(24.dp)) {
-        Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Icon(if (reason == EpisodeAccessReason.NO_DIAMONDS) Icons.Outlined.Diamond else Icons.Outlined.CardMembership, null, tint = MaterialTheme.colorScheme.primary)
-            Text(if (reason == EpisodeAccessReason.NO_DIAMONDS) "Diamond kamu habis" else "Fitur Premium", fontSize = 20.sp, fontWeight = FontWeight.ExtraBold)
+    val isDiamondGate = reason == EpisodeAccessReason.NO_DIAMONDS
+
+    Surface(
+        shape = RoundedCornerShape(22.dp),
+        tonalElevation = 6.dp,
+        modifier = Modifier.padding(24.dp),
+    ) {
+        Column(
+            Modifier.padding(20.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            Icon(
+                if (isDiamondGate) Icons.Outlined.Diamond else Icons.Outlined.CardMembership,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary,
+            )
+
+            Text(
+                if (isDiamondGate) "Episode Terkunci" else "Fitur Premium",
+                fontSize = 20.sp,
+                fontWeight = FontWeight.ExtraBold,
+            )
+
             Text(
                 when (reason) {
-                    EpisodeAccessReason.NO_DIAMONDS -> "Episode ini membutuhkan $diamondCost diamond. Tonton iklan untuk mendapat 2 diamond."
+                    EpisodeAccessReason.NO_DIAMONDS -> "Butuh $diamondCost diamond untuk membuka episode ini."
                     EpisodeAccessReason.PREMIUM_QUALITY -> "Kualitas 1080p hanya tersedia untuk Premium."
                     EpisodeAccessReason.PREMIUM_FEATURE -> "Auto skip intro/outro hanya tersedia untuk Premium."
                 },
                 fontSize = 12.sp,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
-            if (reason == EpisodeAccessReason.NO_DIAMONDS) Button(onClick = onWatchAd, modifier = Modifier.fillMaxWidth()) { Text("Tonton Iklan") }
-            else Button(onClick = onPremiumClick, modifier = Modifier.fillMaxWidth()) { Text("Upgrade Premium") }
-            Button(onClick = onDismiss, modifier = Modifier.fillMaxWidth()) { Text("Nanti") }
+
+            if (isDiamondGate) {
+                Button(onClick = onWatchAd, modifier = Modifier.fillMaxWidth()) {
+                    Text("Tonton Iklan • +2 Diamond")
+                }
+            } else {
+                Button(onClick = onPremiumClick, modifier = Modifier.fillMaxWidth()) {
+                    Text("Upgrade Premium")
+                }
+            }
+
+            Button(onClick = onDismiss, modifier = Modifier.fillMaxWidth()) {
+                Text("Nanti")
+            }
         }
     }
 }
