@@ -8,6 +8,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import com.kakaanime.app.ui.calendar.CalendarDayUi
+import com.kakaanime.app.ui.calendar.CalendarEpisodeUi
+import com.kakaanime.app.ui.calendar.CalendarScreen
+import com.kakaanime.app.ui.calendar.CalendarUiState
 import com.kakaanime.app.ui.detail.AnimeDetailScreen
 import com.kakaanime.app.ui.detail.AnimeDetailUi
 import com.kakaanime.app.ui.detail.EpisodeUi
@@ -108,7 +112,10 @@ private fun KakaUiShell() {
                                 demoHomeState().anime.firstOrNull { it.id == id }?.let { selectedAnime = it }
                             },
                         )
-                        KakaTab.CALENDAR -> Box(Modifier) {}
+                        KakaTab.CALENDAR -> CalendarScreen(
+                            state = demoCalendarState(),
+                            onAnimeClick = { selectedAnime = it },
+                        )
                     }
                 }
             }
@@ -176,6 +183,25 @@ private fun demoEpisodes() = (1..12).map { number ->
         isWatched = number <= 3,
         isLocked = number > 3,
     )
+}
+
+private fun demoCalendarState(): CalendarUiState {
+    val anime = demoHomeState().anime
+    val days = listOf(
+        CalendarDayUi("mon", "Senin", "15 Sep", listOf(CalendarEpisodeUi(anime[0], 1150, "18:00"))),
+        CalendarDayUi("tue", "Selasa", "16 Sep", listOf(CalendarEpisodeUi(anime[1], 25, "20:00"))),
+        CalendarDayUi("wed", "Rabu", "17 Sep", listOf(CalendarEpisodeUi(anime[2], 49, "19:30"))),
+        CalendarDayUi("thu", "Kamis", "18 Sep", emptyList()),
+        CalendarDayUi("fri", "Jumat", "19 Sep", listOf(CalendarEpisodeUi(anime[3], 64, "21:00"))),
+        CalendarDayUi("sat", "Sabtu", "20 Sep", emptyList()),
+        CalendarDayUi("sun", "Minggu", "21 Sep", emptyList()),
+    )
+    val updates = listOf(
+        CalendarEpisodeUi(anime[0], 1150, "Baru rilis", true),
+        CalendarEpisodeUi(anime[1], 25, "Baru rilis", true),
+        CalendarEpisodeUi(anime[2], 49, "Baru rilis", true),
+    )
+    return CalendarUiState(days = days, selectedDayKey = "mon", updates = updates)
 }
 
 private fun demoHomeState() = HomeUiState(
