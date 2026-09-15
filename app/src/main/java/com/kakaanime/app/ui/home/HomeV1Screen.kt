@@ -26,6 +26,7 @@ import androidx.compose.material.icons.outlined.Tune
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -42,9 +43,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.Dialog
 import coil.compose.AsyncImage
-import com.kakaanime.app.ui.motion.KakaMotion
 import com.kakaanime.app.ui.update.UpdateDialog
 import com.kakaanime.app.ui.update.UpdateUiState
 
@@ -64,6 +63,7 @@ fun HomeV1Screen(
     var query by remember(state.searchQuery) { mutableStateOf(state.searchQuery) }
     var filter by remember(state.selectedFilter) { mutableStateOf(state.selectedFilter) }
     var showFilters by remember { mutableStateOf(false) }
+    var showUpdate by remember(updateState.isUpdateAvailable) { mutableStateOf(updateState.isUpdateAvailable) }
 
     val filtered = remember(state.anime, query, filter) {
         state.anime.filter { anime ->
@@ -100,48 +100,15 @@ fun HomeV1Screen(
             }
         }
 
-        if (updateState.isUpdateAvailable) {
-            Dialog(onDismissRequest = {}) {
-                androidx.compose.animation.AnimatedVisibility(
-                    visible = true,
-                    enter = KakaMotion.modalEnterTransition,
-                    exit = KakaMotion.modalExitTransition,
-                ) {
-                    UpdateDialogContent(updateState, onLater = {}, onUpdate = onUpdateClick)
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun UpdateDialogContent(state: UpdateUiState, onLater: () -> Unit, onUpdate: () -> Unit) {
-    Surface(
-        modifier = Modifier.fillMaxWidth(.9f),
-        shape = RoundedCornerShape(28.dp),
-        color = MaterialTheme.colorScheme.surface,
-        tonalElevation = 6.dp,
-    ) {
-        Column(Modifier.padding(22.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                Surface(Modifier.size(58.dp), RoundedCornerShape(16.dp), color = MaterialTheme.colorScheme.primary) {
-                    Text("↓", Modifier.padding(top = 7.dp), fontSize = 34.sp, fontWeight = FontWeight.ExtraBold, color = MaterialTheme.colorScheme.onPrimary, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
-                }
-                Spacer(Modifier.weight(1f))
-            }
-            Text("New Update Available", fontSize = 24.sp, fontWeight = FontWeight.ExtraBold)
-            Text("Versi baru KakaAnime sudah tersedia. Update untuk mendapatkan fitur dan perbaikan terbaru.", color = MaterialTheme.colorScheme.onSurfaceVariant, lineHeight = 20.sp)
-            Surface(Modifier.fillMaxWidth(), RoundedCornerShape(16.dp), color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = .45f)) {
-                Text("Version ${state.versionLabel}", Modifier.padding(horizontal = 14.dp, vertical = 12.dp), fontSize = 15.sp, fontWeight = FontWeight.Bold)
-            }
-            if (state.changelog.isNotEmpty()) {
-                Text("Perubahan", fontSize = 14.sp, fontWeight = FontWeight.Bold)
-                state.changelog.take(5).forEach { Text("• $it", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant) }
-            }
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                androidx.compose.material3.OutlinedButton(onClick = onLater, modifier = Modifier.weight(1f), shape = RoundedCornerShape(18.dp)) { Text("Nanti") }
-                androidx.compose.material3.Button(onClick = onUpdate, modifier = Modifier.weight(1f), shape = RoundedCornerShape(18.dp)) { Text("Update") }
-            }
+        if (showUpdate && updateState.isUpdateAvailable) {
+            UpdateDialog(
+                state = updateState,
+                onLater = { showUpdate = false },
+                onUpdate = {
+                    showUpdate = false
+                    onUpdateClick()
+                },
+            )
         }
     }
 }
@@ -157,7 +124,7 @@ private fun HomeTopBar(query: String, onQueryChange: (String) -> Unit, showFilte
             Surface(onClick = onNotificationsClick, shape = CircleShape, color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = .62f)) { Icon(Icons.Outlined.Notifications, "Notifikasi", Modifier.padding(11.dp)) }
         }
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            OutlinedTextField(value = query, onValueChange = onQueryChange, modifier = Modifier.weight(1f), singleLine = true, shape = RoundedCornerShape(16.dp), leadingIcon = { Icon(Icons.Outlined.Search, "Cari") }, placeholder = { Text("Cari anime, genre, atau studio...") })
+            androidx.compose.material3.OutlinedTextField(value = query, onValueChange = onQueryChange, modifier = Modifier.weight(1f), singleLine = true, shape = RoundedCornerShape(16.dp), leadingIcon = { Icon(Icons.Outlined.Search, "Cari") }, placeholder = { Text("Cari anime, genre, atau studio...") })
             Surface(onClick = onFilterClick, modifier = Modifier.size(54.dp), shape = RoundedCornerShape(16.dp), color = if (showFilters) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = .55f)) { Box(contentAlignment = Alignment.Center) { Icon(Icons.Outlined.Tune, "Filter") } }
         }
     }
