@@ -11,7 +11,7 @@ Expanded the KakaAnime Appearance screen into one vertically scrollable settings
 - System
 - Light
 - Dark
-- OLED / Pure Black
+- OLED / Pure Black as a separate toggle
 
 ### Color
 - Accent color presets
@@ -33,7 +33,7 @@ Expanded the KakaAnime Appearance screen into one vertically scrollable settings
 - Instant-apply / save messaging
 
 ## Theme foundation
-`KakaThemeState` now carries the new appearance options, and OLED mode maps the app background/surface palette to pure black while preserving the selected accent.
+`KakaThemeState` now carries the new appearance options. OLED uses a pure-black background/surface palette when the active theme is dark, while preserving the selected accent. OLED is intentionally separate from System/Light/Dark so the user does not get duplicate theme choices.
 
 The UI-only toggles for Material You, anime-driven colors, Liquid Glass, UI scale, and theme variants establish the presentation/data boundary; actual device wallpaper color extraction, artwork color extraction, persistence, and advanced glass rendering remain data/platform implementation work.
 
