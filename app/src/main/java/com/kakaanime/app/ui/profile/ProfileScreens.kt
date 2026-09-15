@@ -1,5 +1,6 @@
 package com.kakaanime.app.ui.profile
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -32,11 +33,11 @@ fun OtherUserProfileScreen(
     onAnimeClick: (String) -> Unit = {},
 ) {
     Column(Modifier.fillMaxSize()) {
-        Row(Modifier.fillMaxWidth().padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-            Text("‹", fontSize = 30.sp, modifier = Modifier.padding(end = 12.dp))
+        Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 10.dp), verticalAlignment = Alignment.CenterVertically) {
+            Text("‹", fontSize = 30.sp, modifier = Modifier.clickable(onClick = onBack).padding(end = 12.dp))
             Text("Profile", fontSize = 20.sp, fontWeight = FontWeight.Bold)
         }
-        ProfileContent(state, {}, onFollowToggle, onAnimeClick)
+        ProfileContent(Modifier.weight(1f), state, {}, onFollowToggle, onAnimeClick)
     }
 }
 
@@ -46,9 +47,18 @@ private fun ProfileContent(
     onEditProfile: () -> Unit,
     onFollowToggle: () -> Unit,
     onAnimeClick: (String) -> Unit,
+) = ProfileContent(Modifier.fillMaxSize(), state, onEditProfile, onFollowToggle, onAnimeClick)
+
+@Composable
+private fun ProfileContent(
+    modifier: Modifier,
+    state: ProfileUiState,
+    onEditProfile: () -> Unit,
+    onFollowToggle: () -> Unit,
+    onAnimeClick: (String) -> Unit,
 ) {
     LazyColumn(
-        modifier = Modifier.fillMaxSize(),
+        modifier = modifier,
         contentPadding = PaddingValues(16.dp, 8.dp, 16.dp, 116.dp),
         verticalArrangement = Arrangement.spacedBy(14.dp),
     ) {
