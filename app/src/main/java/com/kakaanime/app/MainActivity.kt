@@ -43,10 +43,12 @@ import com.kakaanime.app.ui.social.SocialChatGroupUi
 import com.kakaanime.app.ui.social.SocialChatMessageUi
 import com.kakaanime.app.ui.social.SocialChatScreen
 import com.kakaanime.app.ui.social.SocialChatUiState
+import com.kakaanime.app.ui.social.SocialGroupInfoScreen
 import com.kakaanime.app.ui.social.SocialScreen
 import com.kakaanime.app.ui.social.SocialUiState
 import com.kakaanime.app.ui.social.SocialFriendUi
 import com.kakaanime.app.ui.social.SocialMessageUi
+import com.kakaanime.app.ui.social.SocialGroupMemberUi
 import com.kakaanime.app.ui.theme.KakaAnimeTheme
 import com.kakaanime.app.ui.theme.KakaThemeState
 import com.kakaanime.app.ui.theme.ThemeCustomizationScreen
@@ -73,8 +75,9 @@ private sealed interface KakaDestination {
     data object Profile : KakaDestination { override val rank = 4 }
     data class OtherProfile(val userId: String) : KakaDestination { override val rank = 5 }
     data class Chat(val state: SocialChatUiState) : KakaDestination { override val rank = 6 }
-    data class Detail(val anime: HomeAnimeUi) : KakaDestination { override val rank = 7 }
-    data object Monetization : KakaDestination { override val rank = 8 }
+    data class GroupInfo(val state: SocialChatUiState) : KakaDestination { override val rank = 7 }
+    data class Detail(val anime: HomeAnimeUi) : KakaDestination { override val rank = 8 }
+    data object Monetization : KakaDestination { override val rank = 9 }
 }
 
 @Composable
@@ -84,6 +87,7 @@ private fun KakaUiShell(themeState: KakaThemeState) {
     var favorites by remember { mutableStateOf(setOf("solo-leveling")) }
     var selectedUserId by remember { mutableStateOf<String?>(null) }
     var selectedChat by remember { mutableStateOf<SocialChatUiState?>(null) }
+    var selectedGroupInfo by remember { mutableStateOf<SocialChatUiState?>(null) }
     var showMonetization by remember { mutableStateOf(false) }
     var gateReason by remember { mutableStateOf<EpisodeAccessReason?>(null) }
     var overlay by remember { mutableStateOf<OverlayScreen?>(null) }
@@ -97,12 +101,13 @@ private fun KakaUiShell(themeState: KakaThemeState) {
     }
     val monetizationState = MonetizationUiState(diamonds = 6, isPremium = false)
 
-    val hasNestedUi = gateReason != null || overlay != null || showMonetization || selectedAnime != null || selectedUserId != null || selectedChat != null || selectedTab != KakaTab.HOME
+    val hasNestedUi = gateReason != null || overlay != null || showMonetization || selectedAnime != null || selectedUserId != null || selectedChat != null || selectedGroupInfo != null || selectedTab != KakaTab.HOME
     BackHandler(enabled = hasNestedUi) {
         when {
             gateReason != null -> gateReason = null
             overlay != null -> overlay = null
             showMonetization -> showMonetization = false
+            selectedGroupInfo != null -> selectedGroupInfo = null
             selectedChat != null -> selectedChat = null
             selectedAnime != null -> selectedAnime = null
             selectedUserId != null -> selectedUserId = null
@@ -114,6 +119,7 @@ private fun KakaUiShell(themeState: KakaThemeState) {
     }
 
     val destination: KakaDestination = when {
+        selectedGroupInfo != null -> KakaDestination.GroupInfo(selectedGroupInfo!!)
         selectedChat != null -> KakaDestination.Chat(selectedChat!!)
         selectedAnime != null -> KakaDestination.Detail(selectedAnime!!)
         selectedUserId != null -> KakaDestination.OtherProfile(selectedUserId!!)
@@ -128,7 +134,7 @@ private fun KakaUiShell(themeState: KakaThemeState) {
     }
 
     Scaffold(
-        bottomBar = { if (selectedAnime == null && selectedUserId == null && selectedChat == null && !showMonetization && overlay == null) KakaBottomNavigation(selectedTab = selectedTab, onTabSelected = { profileFromAvatar = false; selectedTab = it }) },
+        bottomBar = { if (selectedAnime == null && selectedUserId == null && selectedChat == null && selectedGroupInfo == null && !showMonetization && overlay == null) KakaBottomNavigation(selectedTab = selectedTab, onTabSelected = { profileFromAvatar = false; selectedTab = it }) },
     ) { padding ->
         Box(Modifier.padding(padding)) {
             if (overlay == null) {
@@ -138,16 +144,35 @@ private fun KakaUiShell(themeState: KakaThemeState) {
                     deepNavigation = { from, to ->
                         from is KakaDestination.Detail || to is KakaDestination.Detail ||
                             from is KakaDestination.Chat || to is KakaDestination.Chat ||
+                            from is KakaDestination.GroupInfo || to is KakaDestination.GroupInfo ||
                             from is KakaDestination.OtherProfile || to is KakaDestination.OtherProfile ||
                             from is KakaDestination.Monetization || to is KakaDestination.Monetization ||
                             (profileFromAvatar && (to is KakaDestination.Profile || from is KakaDestination.Profile))
                     },
                 ) { target ->
                     when (target) {
+                        is KakaDestination.GroupInfo -> SocialGroupInfoScreen(
+                            state = target.state,
+                            availableFriends = demoSocialState(profile.username).friends,
+                            onBack = { selectedGroupInfo = null },
+                            onMembersChanged = { members ->
+                                selectedGroupInfo = selectedGroupInfo?.copy(
+                                    members = members,
+                                    subtitle = "${members.size} anggota • Grup anime",
+                                )
+                                selectedChat = selectedChat?.copy(
+                                    members = members,
+                                    subtitle = "${members.size} anggota • Grup anime",
+                                )
+                            },
+                        )
                         is KakaDestination.Chat -> SocialChatScreen(
                             state = target.state,
                             onBack = { selectedChat = null },
                             onSendMessage = {},
+                            onGroupInfoClick = if (target.state.isGroup) {
+                                { selectedGroupInfo = selectedChat }
+                            } else null ?: {},
                         )
                         is KakaDestination.Detail -> {
                             val anime = target.anime
@@ -282,8 +307,14 @@ private fun demoDirectChat(message: SocialMessageUi) = SocialChatUiState(
 private fun demoGroupChat(group: SocialChatGroupUi) = SocialChatUiState(
     chatId = group.id,
     title = group.name,
-    subtitle = "${group.memberCount} anggota • Grup anime",
+    subtitle = "4 anggota • Grup anime",
     isGroup = true,
+    members = listOf(
+        SocialGroupMemberUi("self", "Akun Saya", true),
+        SocialGroupMemberUi("rin", "Rin"),
+        SocialGroupMemberUi("yuki", "Yuki"),
+        SocialGroupMemberUi("akira", "Akira"),
+    ),
     messages = listOf(
         SocialChatMessageUi("1", "Rin", group.lastMessage, "${group.timeLabel} lalu"),
         SocialChatMessageUi("2", "Yuki", "Menurut kalian episode terbaru gimana?", "2 mnt lalu"),
