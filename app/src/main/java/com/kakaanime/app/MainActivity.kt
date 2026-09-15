@@ -3,6 +3,7 @@ package com.kakaanime.app
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
@@ -72,6 +73,19 @@ private fun KakaUiShell(themeState: KakaThemeState) {
         )))
     }
     val monetizationState = MonetizationUiState(diamonds = 6, isPremium = false)
+
+    BackHandler(enabled = true) {
+        when {
+            gateReason != null -> gateReason = null
+            overlay != null -> overlay = null
+            showMonetization -> showMonetization = false
+            selectedAnime != null -> selectedAnime = null
+            selectedUserId != null -> selectedUserId = null
+            selectedTab != KakaTab.HOME -> selectedTab = KakaTab.HOME
+            else -> (LocalBackDispatcherOwner.current as? androidx.activity.OnBackPressedDispatcherOwner)
+                ?.onBackPressedDispatcher?.onBackPressed()
+        }
+    }
 
     Scaffold(
         bottomBar = { if (selectedAnime == null && selectedUserId == null && !showMonetization && overlay == null) KakaBottomNavigation(selectedTab = selectedTab, onTabSelected = { selectedTab = it }) },
