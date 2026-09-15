@@ -8,7 +8,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -22,6 +26,7 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun ThemeCustomizationScreen(
     state: KakaThemeState,
+    onBack: () -> Unit = {},
     onAccentSelected: (KakaAccent) -> Unit = { state.accent = it },
     onModeSelected: (KakaThemeMode) -> Unit = { state.mode = it },
 ) {
@@ -29,7 +34,15 @@ fun ThemeCustomizationScreen(
         modifier = Modifier.padding(18.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        Text("Tampilan", style = MaterialTheme.typography.headlineSmall)
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            IconButton(onClick = onBack) {
+                Icon(Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = "Kembali")
+            }
+            Text("Tampilan", style = MaterialTheme.typography.headlineSmall)
+        }
         Text(
             "Pilih warna dan mode tampilan KakaAnime.",
             color = MaterialTheme.colorScheme.onSurfaceVariant,
