@@ -1,5 +1,8 @@
 package com.kakaanime.app.ui.profile
 
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -12,9 +15,10 @@ import androidx.compose.material.icons.outlined.Favorite
 import androidx.compose.material.icons.outlined.Palette
 import androidx.compose.material.icons.outlined.PlayCircle
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -70,9 +74,7 @@ private fun ProfileContent(
             Surface(Modifier.fillMaxWidth(), RoundedCornerShape(24.dp), color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = .38f)) {
                 Column(Modifier.padding(18.dp)) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Surface(Modifier.size(72.dp), CircleShape, color = MaterialTheme.colorScheme.surface) {
-                            Box(contentAlignment = Alignment.Center) { Text(state.username.take(2).uppercase(), fontSize = 20.sp, fontWeight = FontWeight.ExtraBold, color = MaterialTheme.colorScheme.primary) }
-                        }
+                        ProfileAvatarMotion(state.username)
                         Spacer(Modifier.width(14.dp))
                         Column(Modifier.weight(1f)) {
                             Text(state.username, fontSize = 20.sp, fontWeight = FontWeight.ExtraBold)
@@ -118,6 +120,35 @@ private fun ProfileContent(
         item { Text("Favorite Anime", fontSize = 18.sp, fontWeight = FontWeight.ExtraBold) }
         if (state.favorites.isEmpty()) item { Text("Belum ada anime favorit.", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant) }
         else items(state.favorites, key = { it.id }) { anime -> ListRow(anime.title, "Episode ${anime.latestEpisode} • ★ ${anime.rating}", Icons.Outlined.Favorite) { onAnimeClick(anime.id) } }
+    }
+}
+
+@Composable
+private fun ProfileAvatarMotion(username: String) {
+    var started by remember(username) { mutableStateOf(false) }
+    LaunchedEffect(username) { started = true }
+    val scale by animateFloatAsState(
+        targetValue = if (started) 1f else .86f,
+        animationSpec = tween(260, easing = FastOutSlowInEasing),
+        label = "Profile avatar scale",
+    )
+    val alpha by animateFloatAsState(
+        targetValue = if (started) 1f else 0f,
+        animationSpec = tween(190, easing = FastOutSlowInEasing),
+        label = "Profile avatar alpha",
+    )
+    Surface(
+        Modifier.size(72.dp).graphicsLayer {
+            scaleX = scale
+            scaleY = scale
+            this.alpha = alpha
+        },
+        CircleShape,
+        color = MaterialTheme.colorScheme.surface,
+    ) {
+        Box(contentAlignment = Alignment.Center) {
+            Text(username.take(2).uppercase(), fontSize = 20.sp, fontWeight = FontWeight.ExtraBold, color = MaterialTheme.colorScheme.primary)
+        }
     }
 }
 
