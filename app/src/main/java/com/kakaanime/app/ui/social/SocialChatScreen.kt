@@ -45,6 +45,7 @@ fun SocialChatScreen(
 ) {
     var draft by remember { mutableStateOf("") }
     var showEmojiRow by remember { mutableStateOf(false) }
+    var messages by remember(state.chatId) { mutableStateOf(state.messages) }
 
     Column(Modifier.fillMaxSize()) {
         Row(
@@ -73,7 +74,7 @@ fun SocialChatScreen(
             contentPadding = PaddingValues(horizontal = 14.dp, vertical = 10.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            items(state.messages, key = { it.id }) { message ->
+            items(messages, key = { it.id }) { message ->
                 ChatBubble(message)
             }
         }
@@ -119,6 +120,13 @@ fun SocialChatScreen(
                 onClick = {
                     val message = draft.trim()
                     if (message.isNotEmpty()) {
+                        messages = messages + SocialChatMessageUi(
+                            id = "local-${messages.size + 1}",
+                            senderName = "Akun Saya",
+                            text = message,
+                            timeLabel = "Baru saja",
+                            isMine = true,
+                        )
                         onSendMessage(message)
                         draft = ""
                         showEmojiRow = false
