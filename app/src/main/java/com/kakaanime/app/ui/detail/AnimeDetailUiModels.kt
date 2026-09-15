@@ -30,7 +30,7 @@ data class SeasonUi(
 )
 
 enum class DetailTab { INFO, EPISODES }
-en
+
 enum class EpisodeFilter(val label: String) {
     ALL("Semua"),
     NEW("Terbaru"),
