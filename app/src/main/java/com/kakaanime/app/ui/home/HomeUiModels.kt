@@ -26,6 +26,7 @@ data class HomeUiState(
     val diamonds: Int = 0,
     val isPremium: Boolean = false,
     val username: String = "Akun Saya",
+    val avatarUrl: String? = null,
     val searchQuery: String = "",
     val selectedFilter: HomeFilter = HomeFilter.ALL,
 )
