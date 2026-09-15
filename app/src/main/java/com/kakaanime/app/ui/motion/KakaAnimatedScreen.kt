@@ -17,10 +17,12 @@ fun <S> KakaAnimatedScreen(
         modifier = modifier,
         transitionSpec = {
             val forward = rank(targetState) >= rank(initialState)
-            KakaMotion.screenTransition(
-                forward = forward,
-                deepNavigation = deepNavigation(initialState, targetState),
-            )
+            with(KakaMotion) {
+                screenTransition(
+                    forward = forward,
+                    deepNavigation = deepNavigation(initialState, targetState),
+                )
+            }
         },
         label = "KakaAnime screen transition",
     ) { target -> content(target) }
