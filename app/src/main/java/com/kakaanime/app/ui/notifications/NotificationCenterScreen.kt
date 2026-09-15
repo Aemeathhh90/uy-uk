@@ -15,6 +15,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -44,12 +45,9 @@ fun NotificationCenterScreen(
                 style = MaterialTheme.typography.headlineSmall,
             )
             if (state.unreadCount > 0) {
-                Text(
-                    "Tandai dibaca",
-                    modifier = Modifier.padding(start = 8.dp),
-                    color = MaterialTheme.colorScheme.primary,
-                    style = MaterialTheme.typography.labelLarge,
-                )
+                TextButton(onClick = onMarkAllRead) {
+                    Text("Tandai dibaca")
+                }
             }
         }
 
