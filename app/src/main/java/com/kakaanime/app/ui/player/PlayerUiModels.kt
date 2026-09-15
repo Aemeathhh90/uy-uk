@@ -11,9 +11,21 @@ data class PlayerUiState(
     val quality: PlayerQuality = PlayerQuality.P720,
     val canSkipIntro: Boolean = false,
     val showSkipIntro: Boolean = false,
+    val canSkipOutro: Boolean = false,
+    val showSkipOutro: Boolean = false,
     val hasPreviousEpisode: Boolean = false,
     val hasNextEpisode: Boolean = true,
+    val playbackState: PlayerPlaybackState = PlayerPlaybackState.READY,
+    val errorMessage: String? = null,
 )
+
+enum class PlayerPlaybackState {
+    LOADING,
+    READY,
+    BUFFERING,
+    ERROR,
+    COMPLETED,
+}
 
 enum class PlayerQuality(val label: String) {
     P720("720p"),
