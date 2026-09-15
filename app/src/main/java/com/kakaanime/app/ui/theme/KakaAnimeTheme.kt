@@ -29,7 +29,9 @@ enum class KakaAccent(val primary: Color, val secondary: Color) {
     Orange(Color(0xFFFF9A3D), Color(0xFFFFB66B))
 }
 
-enum class KakaThemeMode { LIGHT, DARK, AUTO }
+enum class KakaThemeMode(val label: String) { LIGHT("Light"), DARK("Dark"), AUTO("System") , OLED("OLED") }
+enum class KakaUiScale(val label: String) { COMPACT("Compact"), DEFAULT("Default"), LARGE("Large") }
+enum class KakaThemeVariant(val label: String) { VIBRANT("Vibrant"), MUTED("Muted"), HIGH_CONTRAST("High Contrast") }
 
 object KakaTokens {
     val screenPadding = 18.dp
@@ -60,9 +62,16 @@ private val KakaTypography = Typography(
 class KakaThemeState(accent: KakaAccent = KakaAccent.Blue, mode: KakaThemeMode = KakaThemeMode.DARK) {
     var accent by mutableStateOf(accent)
     var mode by mutableStateOf(mode)
+    var oled by mutableStateOf(mode == KakaThemeMode.OLED)
+    var materialYou by mutableStateOf(false)
+    var animeDynamicTheme by mutableStateOf(false)
+    var liquidGlass by mutableStateOf(false)
+    var deviceFont by mutableStateOf(false)
+    var uiScale by mutableStateOf(KakaUiScale.DEFAULT)
+    var variant by mutableStateOf(KakaThemeVariant.VIBRANT)
     constructor(accent: KakaAccent, darkMode: Boolean) : this(accent, if (darkMode) KakaThemeMode.DARK else KakaThemeMode.LIGHT)
     var darkMode: Boolean
-        get() = mode == KakaThemeMode.DARK
+        get() = mode == KakaThemeMode.DARK || mode == KakaThemeMode.OLED
         set(value) { mode = if (value) KakaThemeMode.DARK else KakaThemeMode.LIGHT }
 }
 
@@ -73,18 +82,20 @@ fun rememberKakaThemeState(): KakaThemeState = remember { KakaThemeState() }
 
 @Composable
 fun KakaAnimeTheme(themeState: KakaThemeState = rememberKakaThemeState(), content: @Composable () -> Unit) {
-    val accent = themeState.accent
     val isDark = when (themeState.mode) {
-        KakaThemeMode.DARK -> true
+        KakaThemeMode.DARK, KakaThemeMode.OLED -> true
         KakaThemeMode.LIGHT -> false
         KakaThemeMode.AUTO -> isSystemInDarkTheme()
     }
+    val background = if (themeState.mode == KakaThemeMode.OLED) Color.Black else if (isDark) Color(0xFF090D12) else Color(0xFFF5F8FC)
+    val surface = if (themeState.mode == KakaThemeMode.OLED) Color.Black else if (isDark) Color(0xFF111820) else Color.White
+    val surfaceVariant = if (themeState.mode == KakaThemeMode.OLED) Color(0xFF101010) else if (isDark) Color(0xFF17212B) else Color(0xFFE9F0F7)
     val colors = if (isDark) {
-        darkColorScheme(primary = accent.primary, secondary = accent.secondary, background = Color(0xFF090D12), surface = Color(0xFF111820), surfaceVariant = Color(0xFF17212B))
+        darkColorScheme(primary = themeState.accent.primary, secondary = themeState.accent.secondary, background = background, surface = surface, surfaceVariant = surfaceVariant)
     } else {
-        lightColorScheme(primary = accent.primary, secondary = accent.secondary, background = Color(0xFFF5F8FC), surface = Color.White, surfaceVariant = Color(0xFFE9F0F7))
+        lightColorScheme(primary = themeState.accent.primary, secondary = themeState.accent.secondary, background = background, surface = surface, surfaceVariant = surfaceVariant)
     }
     CompositionLocalProvider(LocalKakaThemeState provides themeState) {
-        MaterialTheme(colorScheme = colors, typography = KakaTypography, content = content)
+        MaterialTheme(colorScheme = colors, typography = if (themeState.deviceFont) Typography() else KakaTypography, content = content)
     }
 }
