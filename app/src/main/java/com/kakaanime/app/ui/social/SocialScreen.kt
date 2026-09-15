@@ -114,8 +114,9 @@ private fun SocialConversationCarousel(
                 if (messages.isEmpty()) {
                     ConversationEmpty("Belum ada percakapan terbaru.")
                 } else {
-                    messages.take(5).forEach { message ->
+                    messages.take(5).forEachIndexed { index, message ->
                         MessageRow(message)
+                        if (index < minOf(messages.size, 5) - 1) ConversationDivider()
                     }
                 }
             }
@@ -128,8 +129,9 @@ private fun SocialConversationCarousel(
                 if (groups.isEmpty()) {
                     ConversationEmpty("Belum ada grup anime.")
                 } else {
-                    groups.take(5).forEach { group ->
+                    groups.take(5).forEachIndexed { index, group ->
                         GroupRow(group)
+                        if (index < minOf(groups.size, 5) - 1) ConversationDivider()
                     }
                 }
             }
@@ -154,6 +156,14 @@ private fun ConversationListCard(
             content()
         }
     }
+}
+
+@Composable
+private fun ConversationDivider() {
+    HorizontalDivider(
+        modifier = Modifier.padding(start = 50.dp),
+        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = .45f),
+    )
 }
 
 @Composable
