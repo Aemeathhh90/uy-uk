@@ -5,6 +5,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Dialog
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -22,6 +23,10 @@ import com.kakaanime.app.ui.home.HomeUiState
 import com.kakaanime.app.ui.home.HomeV1Screen
 import com.kakaanime.app.ui.library.LibraryScreen
 import com.kakaanime.app.ui.library.LibraryUiState
+import com.kakaanime.app.ui.monetization.DiamondPremiumScreen
+import com.kakaanime.app.ui.monetization.EpisodeAccessReason
+import com.kakaanime.app.ui.monetization.EpisodeGateDialog
+import com.kakaanime.app.ui.monetization.MonetizationUiState
 import com.kakaanime.app.ui.profile.MyProfileScreen
 import com.kakaanime.app.ui.profile.OtherUserProfileScreen
 import com.kakaanime.app.ui.profile.ProfileUiState
@@ -47,16 +52,27 @@ private fun KakaUiShell() {
     var selectedAnime by remember { mutableStateOf<HomeAnimeUi?>(null) }
     var favorites by remember { mutableStateOf(setOf("solo-leveling")) }
     var selectedUserId by remember { mutableStateOf<String?>(null) }
+    var showMonetization by remember { mutableStateOf(false) }
+    var gateReason by remember { mutableStateOf<EpisodeAccessReason?>(null) }
+
+    val monetizationState = MonetizationUiState(diamonds = 6, isPremium = false)
 
     Scaffold(
         bottomBar = {
-            if (selectedAnime == null && selectedUserId == null) {
+            if (selectedAnime == null && selectedUserId == null && !showMonetization) {
                 KakaBottomNavigation(selectedTab = selectedTab, onTabSelected = { selectedTab = it })
             }
         },
     ) { padding ->
         Box(Modifier.padding(padding)) {
             when {
+                showMonetization -> {
+                    DiamondPremiumScreen(
+                        state = monetizationState,
+                        onWatchAd = {},
+                        onPremiumClick = {},
+                    )
+                }
                 selectedAnime != null -> {
                     val anime = selectedAnime!!
                     AnimeDetailScreen(
@@ -70,7 +86,7 @@ private fun KakaUiShell() {
                         },
                         onEpisodeClick = {},
                         onSeasonSelected = {},
-                        onEpisodeGate = {},
+                        onEpisodeGate = { gateReason = EpisodeAccessReason.NO_DIAMONDS },
                     )
                 }
                 selectedUserId != null -> {
@@ -91,8 +107,8 @@ private fun KakaUiShell() {
                             onContinueWatchingClick = { selectedAnime = it.anime },
                             onProfileClick = { selectedUserId = "self" },
                             onNotificationsClick = {},
-                            onDiamondClick = {},
-                            onPremiumClick = {},
+                            onDiamondClick = { showMonetization = true },
+                            onPremiumClick = { showMonetization = true },
                             onWatchTogetherClick = {},
                         )
                         KakaTab.SOCIAL -> SocialScreen(
@@ -117,6 +133,17 @@ private fun KakaUiShell() {
                             onAnimeClick = { selectedAnime = it },
                         )
                     }
+                }
+            }
+
+            gateReason?.let { reason ->
+                Dialog(onDismissRequest = { gateReason = null }) {
+                    EpisodeGateDialog(
+                        reason = reason,
+                        onWatchAd = { gateReason = null },
+                        onPremiumClick = { gateReason = null; showMonetization = true },
+                        onDismiss = { gateReason = null },
+                    )
                 }
             }
         }
