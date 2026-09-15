@@ -156,14 +156,8 @@ private fun KakaUiShell(themeState: KakaThemeState) {
                             availableFriends = demoSocialState(profile.username).friends,
                             onBack = { selectedGroupInfo = null },
                             onMembersChanged = { members ->
-                                selectedGroupInfo = selectedGroupInfo?.copy(
-                                    members = members,
-                                    subtitle = "${members.size} anggota • Grup anime",
-                                )
-                                selectedChat = selectedChat?.copy(
-                                    members = members,
-                                    subtitle = "${members.size} anggota • Grup anime",
-                                )
+                                selectedGroupInfo = selectedGroupInfo?.copy(members = members, subtitle = "${members.size} anggota • Grup anime")
+                                selectedChat = selectedChat?.copy(members = members, subtitle = "${members.size} anggota • Grup anime")
                             },
                         )
                         is KakaDestination.Chat -> SocialChatScreen(
@@ -172,7 +166,9 @@ private fun KakaUiShell(themeState: KakaThemeState) {
                             onSendMessage = {},
                             onGroupInfoClick = if (target.state.isGroup) {
                                 { selectedGroupInfo = selectedChat }
-                            } else null ?: {},
+                            } else {
+                                {}
+                            },
                         )
                         is KakaDestination.Detail -> {
                             val anime = target.anime
@@ -280,6 +276,8 @@ private fun demoSocialState(username: String) = SocialUiState(
         SocialFriendUi("rin", "Rin", "Online"),
         SocialFriendUi("yuki", "Yuki", "Nonton One Piece"),
         SocialFriendUi("akira", "Akira", "Online"),
+        SocialFriendUi("mika", "Mika", "Online"),
+        SocialFriendUi("hana", "Hana", "Nonton Solo Leveling"),
     ),
     messages = listOf(
         SocialMessageUi("m-rin", "Rin", "Episode barunya gila sih", "Baru saja", 2),
