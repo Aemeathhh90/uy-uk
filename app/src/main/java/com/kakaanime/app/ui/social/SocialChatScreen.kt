@@ -1,6 +1,5 @@
 package com.kakaanime.app.ui.social
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -65,12 +64,7 @@ fun SocialChatScreen(
             Spacer(Modifier.width(10.dp))
             Column(Modifier.weight(1f)) {
                 Text(state.title, fontSize = 16.sp, fontWeight = androidx.compose.ui.text.font.FontWeight.ExtraBold, maxLines = 1)
-                Text(
-                    state.subtitle,
-                    fontSize = 10.sp,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 1,
-                )
+                Text(state.subtitle, fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1)
             }
         }
 
@@ -78,7 +72,6 @@ fun SocialChatScreen(
             modifier = Modifier.weight(1f),
             contentPadding = PaddingValues(horizontal = 14.dp, vertical = 10.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
-            reverseLayout = false,
         ) {
             items(state.messages, key = { it.id }) { message ->
                 ChatBubble(message)
@@ -169,4 +162,3 @@ private fun ChatBubble(message: SocialChatMessageUi) {
         }
     }
 }
-
