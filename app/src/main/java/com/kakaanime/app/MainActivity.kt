@@ -64,28 +64,17 @@ private fun KakaUiShell(themeState: KakaThemeState) {
     var showMonetization by remember { mutableStateOf(false) }
     var gateReason by remember { mutableStateOf<EpisodeAccessReason?>(null) }
     var overlay by remember { mutableStateOf<OverlayScreen?>(null) }
-    var profile by remember {
-        mutableStateOf(EditProfileUiState("Akun Saya", "Pecinta anime dan nonton bareng.", "Online"))
-    }
+    var profile by remember { mutableStateOf(EditProfileUiState("Akun Saya", "Pecinta anime dan nonton bareng.", "Online")) }
     var notifications by remember {
-        mutableStateOf(
-            NotificationUiState(
-                notifications = listOf(
-                    NotificationUi("n1", "Episode baru tersedia", "One Piece Episode 1150 sudah rilis.", "Baru saja", "one-piece", 1150, true),
-                    NotificationUi("n2", "Update favorit", "Solo Leveling mendapatkan episode baru.", "1 jam lalu", "solo-leveling", 25, true),
-                )
-            )
-        )
+        mutableStateOf(NotificationUiState(listOf(
+            NotificationUi("n1", "Episode baru tersedia", "One Piece Episode 1150 sudah rilis.", "Baru saja", "one-piece", 1150, true),
+            NotificationUi("n2", "Update favorit", "Solo Leveling mendapatkan episode baru.", "1 jam lalu", "solo-leveling", 25, true),
+        )))
     }
-
     val monetizationState = MonetizationUiState(diamonds = 6, isPremium = false)
 
     Scaffold(
-        bottomBar = {
-            if (selectedAnime == null && selectedUserId == null && !showMonetization && overlay == null) {
-                KakaBottomNavigation(selectedTab = selectedTab, onTabSelected = { selectedTab = it })
-            }
-        },
+        bottomBar = { if (selectedAnime == null && selectedUserId == null && !showMonetization && overlay == null) KakaBottomNavigation(selectedTab = selectedTab, onTabSelected = { selectedTab = it }) },
     ) { padding ->
         Box(Modifier.padding(padding)) {
             when {
@@ -93,154 +82,74 @@ private fun KakaUiShell(themeState: KakaThemeState) {
                     state = notifications,
                     onBack = { overlay = null },
                     onNotificationClick = { notification ->
-                        notification.animeId?.let { id ->
-                            demoHomeState().anime.firstOrNull { it.id == id }?.let { selectedAnime = it }
-                        }
-                        notifications = NotificationUiState(notifications.notifications.map {
-                            if (it.id == notification.id) it.copy(isUnread = false) else it
-                        })
+                        notification.animeId?.let { id -> demoHomeState().anime.firstOrNull { it.id == id }?.let { selectedAnime = it } }
+                        notifications = NotificationUiState(notifications.notifications.map { if (it.id == notification.id) it.copy(isUnread = false) else it })
                         overlay = null
                     },
-                    onMarkAllRead = {
-                        notifications = NotificationUiState(notifications.notifications.map { it.copy(isUnread = false) })
-                    },
+                    onMarkAllRead = { notifications = NotificationUiState(notifications.notifications.map { it.copy(isUnread = false) }) },
                 )
                 overlay == OverlayScreen.EDIT_PROFILE -> EditProfileScreen(
                     state = profile,
                     onBack = { overlay = null },
-                    onSave = {
-                        profile = it
-                        overlay = null
-                    },
+                    onSave = { profile = it; overlay = null },
                 )
                 overlay == OverlayScreen.THEME -> ThemeCustomizationScreen(state = themeState)
-                showMonetization -> DiamondPremiumScreen(
-                    state = monetizationState,
-                    onWatchAd = {},
-                    onPremiumClick = {},
-                )
+                showMonetization -> DiamondPremiumScreen(state = monetizationState, onWatchAd = {}, onPremiumClick = {})
                 selectedAnime != null -> {
                     val anime = selectedAnime!!
                     AnimeDetailScreen(
-                        anime = demoDetail(anime),
-                        episodes = demoEpisodes(),
+                        anime = demoDetail(anime), episodes = demoEpisodes(),
                         seasons = listOf(SeasonUi("s1", "Season 1"), SeasonUi("s2", "Season 2")),
                         isFavorite = anime.id in favorites,
                         onBack = { selectedAnime = null },
-                        onToggleFavorite = {
-                            favorites = if (anime.id in favorites) favorites - anime.id else favorites + anime.id
-                        },
-                        onEpisodeClick = {},
-                        onSeasonSelected = {},
+                        onToggleFavorite = { favorites = if (anime.id in favorites) favorites - anime.id else favorites + anime.id },
+                        onEpisodeClick = {}, onSeasonSelected = {},
                         onEpisodeGate = { gateReason = EpisodeAccessReason.NO_DIAMONDS },
                     )
                 }
                 selectedUserId != null -> OtherUserProfileScreen(
                     state = demoOtherProfile(selectedUserId!!),
-                    onBack = { selectedUserId = null },
-                    onFollowToggle = {},
-                    onAnimeClick = { value ->
-                        demoHomeState().anime.firstOrNull { it.id == value || it.title == value }?.let { selectedAnime = it }
-                    },
+                    onBack = { selectedUserId = null }, onFollowToggle = {},
+                    onAnimeClick = { value -> demoHomeState().anime.firstOrNull { it.id == value || it.title == value }?.let { selectedAnime = it } },
                 )
                 else -> when (selectedTab) {
                     KakaTab.HOME -> HomeV1Screen(
                         state = demoHomeState().copy(username = profile.username),
-                        onAnimeClick = { selectedAnime = it },
-                        onContinueWatchingClick = { selectedAnime = it.anime },
+                        onAnimeClick = { selectedAnime = it }, onContinueWatchingClick = { selectedAnime = it.anime },
                         onProfileClick = { selectedTab = KakaTab.PROFILE },
                         onNotificationsClick = { overlay = OverlayScreen.NOTIFICATIONS },
-                        onDiamondClick = { showMonetization = true },
-                        onPremiumClick = { showMonetization = true },
-                        onWatchTogetherClick = {},
+                        onDiamondClick = { showMonetization = true }, onPremiumClick = { showMonetization = true }, onWatchTogetherClick = {},
                     )
-                    KakaTab.SOCIAL -> SocialScreen(
-                        state = demoSocialState(profile.username),
-                        onProfileClick = { selectedUserId = it },
-                        onWatchTogetherClick = {},
-                    )
+                    KakaTab.SOCIAL -> SocialScreen(state = demoSocialState(profile.username), onProfileClick = { selectedUserId = it }, onWatchTogetherClick = {})
                     KakaTab.LIBRARY -> LibraryScreen(
                         state = LibraryUiState(favorites = demoHomeState().anime.filter { it.id in favorites }),
-                        onAnimeClick = { selectedAnime = it },
-                        onFavoriteToggle = { anime -> favorites = favorites - anime.id },
+                        onAnimeClick = { selectedAnime = it }, onFavoriteToggle = { anime -> favorites = favorites - anime.id },
                     )
                     KakaTab.PROFILE -> MyProfileScreen(
                         state = demoMyProfile(favorites, profile),
                         onEditProfile = { overlay = OverlayScreen.EDIT_PROFILE },
+                        onAppearanceClick = { overlay = OverlayScreen.THEME },
                         onAnimeClick = { id -> demoHomeState().anime.firstOrNull { it.id == id }?.let { selectedAnime = it } },
                     )
-                    KakaTab.CALENDAR -> CalendarScreen(
-                        state = demoCalendarState(),
-                        onAnimeClick = { selectedAnime = it },
-                    )
+                    KakaTab.CALENDAR -> CalendarScreen(state = demoCalendarState(), onAnimeClick = { selectedAnime = it })
                 }
             }
-
-            gateReason?.let { reason ->
-                Dialog(onDismissRequest = { gateReason = null }) {
-                    EpisodeGateDialog(
-                        reason = reason,
-                        onWatchAd = { gateReason = null },
-                        onPremiumClick = { gateReason = null; showMonetization = true },
-                        onDismiss = { gateReason = null },
-                    )
-                }
-            }
+            gateReason?.let { reason -> Dialog(onDismissRequest = { gateReason = null }) { EpisodeGateDialog(reason = reason, onWatchAd = { gateReason = null }, onPremiumClick = { gateReason = null; showMonetization = true }, onDismiss = { gateReason = null }) } }
         }
     }
 }
 
-private fun demoSocialState(username: String) = SocialUiState(
-    username = username,
-    globalOnlineCount = 128,
-    animeRoomCount = 12,
-    friends = listOf(SocialFriendUi("rin", "Rin", "Online"), SocialFriendUi("yuki", "Yuki", "Nonton One Piece"), SocialFriendUi("akira", "Akira", "Online")),
-)
-
-private fun demoMyProfile(favorites: Set<String>, profile: EditProfileUiState) = ProfileUiState(
-    userId = "self", username = profile.username, bio = profile.bio, status = profile.status,
-    favorites = demoHomeState().anime.filter { it.id in favorites }, watchingTitles = listOf("One Piece"),
-    watchedCount = 42, favoriteCount = favorites.size, followingCount = 8, isSelf = true,
-)
-
-private fun demoOtherProfile(userId: String) = ProfileUiState(
-    userId = userId, username = when (userId) { "rin" -> "Rin"; "yuki" -> "Yuki"; else -> "Akira" },
-    bio = "Suka anime action dan fantasy.", status = "Online", favorites = demoHomeState().anime.take(2),
-    watchingTitles = listOf("Solo Leveling"), watchedCount = 86, favoriteCount = 2, followingCount = 21,
-    isSelf = false, isFollowing = false,
-)
-
-private fun demoDetail(anime: HomeAnimeUi) = AnimeDetailUi(
-    id = anime.id, title = anime.title,
-    description = "Cerita ${anime.title} dengan petualangan, konflik, dan karakter yang terus berkembang.",
-    genre = anime.genre, year = "2026", type = "TV", status = anime.status, studio = "Kaka Studio",
-    season = "Season 1", rating = anime.rating, posterUrl = anime.posterUrl,
-)
-
+private fun demoSocialState(username: String) = SocialUiState(username = username, globalOnlineCount = 128, animeRoomCount = 12, friends = listOf(SocialFriendUi("rin", "Rin", "Online"), SocialFriendUi("yuki", "Yuki", "Nonton One Piece"), SocialFriendUi("akira", "Akira", "Online")))
+private fun demoMyProfile(favorites: Set<String>, profile: EditProfileUiState) = ProfileUiState(userId = "self", username = profile.username, bio = profile.bio, status = profile.status, favorites = demoHomeState().anime.filter { it.id in favorites }, watchingTitles = listOf("One Piece"), watchedCount = 42, favoriteCount = favorites.size, followingCount = 8, isSelf = true)
+private fun demoOtherProfile(userId: String) = ProfileUiState(userId = userId, username = when (userId) { "rin" -> "Rin"; "yuki" -> "Yuki"; else -> "Akira" }, bio = "Suka anime action dan fantasy.", status = "Online", favorites = demoHomeState().anime.take(2), watchingTitles = listOf("Solo Leveling"), watchedCount = 86, favoriteCount = 2, followingCount = 21, isSelf = false, isFollowing = false)
+private fun demoDetail(anime: HomeAnimeUi) = AnimeDetailUi(id = anime.id, title = anime.title, description = "Cerita ${anime.title} dengan petualangan, konflik, dan karakter yang terus berkembang.", genre = anime.genre, year = "2026", type = "TV", status = anime.status, studio = "Kaka Studio", season = "Season 1", rating = anime.rating, posterUrl = anime.posterUrl)
 private fun demoEpisodes() = (1..12).map { number -> EpisodeUi(number, "Episode $number", isNew = number >= 11, isWatched = number <= 3, isLocked = number > 3) }
-
 private fun demoCalendarState(): CalendarUiState {
     val anime = demoHomeState().anime
-    return CalendarUiState(
-        days = listOf(
-            CalendarDayUi("mon", "Senin", "15 Sep", listOf(CalendarEpisodeUi(anime[0], 1150, "18:00"))),
-            CalendarDayUi("tue", "Selasa", "16 Sep", listOf(CalendarEpisodeUi(anime[1], 25, "20:00"))),
-            CalendarDayUi("wed", "Rabu", "17 Sep", listOf(CalendarEpisodeUi(anime[2], 49, "19:30"))),
-            CalendarDayUi("thu", "Kamis", "18 Sep", emptyList()),
-            CalendarDayUi("fri", "Jumat", "19 Sep", listOf(CalendarEpisodeUi(anime[3], 64, "21:00"))),
-            CalendarDayUi("sat", "Sabtu", "20 Sep", emptyList()), CalendarDayUi("sun", "Minggu", "21 Sep", emptyList()),
-        ), selectedDayKey = "mon",
-        updates = listOf(CalendarEpisodeUi(anime[0], 1150, "Baru rilis", true), CalendarEpisodeUi(anime[1], 25, "Baru rilis", true), CalendarEpisodeUi(anime[2], 49, "Baru rilis", true)),
-    )
+    return CalendarUiState(days = listOf(CalendarDayUi("mon", "Senin", "15 Sep", listOf(CalendarEpisodeUi(anime[0], 1150, "18:00"))), CalendarDayUi("tue", "Selasa", "16 Sep", listOf(CalendarEpisodeUi(anime[1], 25, "20:00"))), CalendarDayUi("wed", "Rabu", "17 Sep", listOf(CalendarEpisodeUi(anime[2], 49, "19:30"))), CalendarDayUi("thu", "Kamis", "18 Sep", emptyList()), CalendarDayUi("fri", "Jumat", "19 Sep", listOf(CalendarEpisodeUi(anime[3], 64, "21:00"))), CalendarDayUi("sat", "Sabtu", "20 Sep", emptyList()), CalendarDayUi("sun", "Minggu", "21 Sep", emptyList())), selectedDayKey = "mon", updates = listOf(CalendarEpisodeUi(anime[0], 1150, "Baru rilis", true), CalendarEpisodeUi(anime[1], 25, "Baru rilis", true), CalendarEpisodeUi(anime[2], 49, "Baru rilis", true)))
 }
-
 private fun demoHomeState() = HomeUiState(
-    anime = listOf(
-        HomeAnimeUi("one-piece", "One Piece", 1150, "8.9", "Action • Adventure", isNew = true),
-        HomeAnimeUi("solo-leveling", "Solo Leveling", 25, "8.8", "Action • Fantasy", isNew = true),
-        HomeAnimeUi("jujutsu-kaisen", "Jujutsu Kaisen", 48, "8.7", "Action • Supernatural"),
-        HomeAnimeUi("demon-slayer", "Demon Slayer", 63, "8.6", "Action • Fantasy"),
-    ),
+    anime = listOf(HomeAnimeUi("one-piece", "One Piece", 1150, "8.9", "Action • Adventure", isNew = true), HomeAnimeUi("solo-leveling", "Solo Leveling", 25, "8.8", "Action • Fantasy", isNew = true), HomeAnimeUi("jujutsu-kaisen", "Jujutsu Kaisen", 48, "8.7", "Action • Supernatural"), HomeAnimeUi("demon-slayer", "Demon Slayer", 63, "8.6", "Action • Fantasy")),
     continueWatching = listOf(ContinueWatchingUi(HomeAnimeUi("one-piece", "One Piece", 1150, "8.9", "Action • Adventure"), 1149, "Episode 1149", progressPercent = 42)),
     diamonds = 6, isPremium = false, username = "Akun Saya",
 )
