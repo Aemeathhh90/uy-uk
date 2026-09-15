@@ -13,6 +13,10 @@ import androidx.compose.material.icons.outlined.Public
 import androidx.compose.material.icons.outlined.VideoCall
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -26,6 +30,30 @@ fun SocialScreen(
     onMessageClick: (SocialMessageUi) -> Unit = {},
     onGroupClick: (SocialChatGroupUi) -> Unit = {},
 ) {
+    var watchTogetherOpen by remember { mutableStateOf(false) }
+    var activeRoom by remember { mutableStateOf<WatchTogetherRoomUi?>(null) }
+
+    if (watchTogetherOpen) {
+        if (activeRoom == null) {
+            WatchTogetherScreen(
+                state = demoWatchTogetherState(),
+                onBack = { watchTogetherOpen = false },
+                onCreateRoom = { visibility -> activeRoom = demoWatchTogetherRoom(visibility) },
+                onJoinByCode = { activeRoom = demoWatchTogetherPrivateRoom(it) },
+                onJoinRoom = { activeRoom = it.copy(participants = it.participants + WatchTogetherParticipantUi("self", state.username, "Watching", false)) },
+                onPremiumClick = onWatchTogetherClick,
+            )
+        } else {
+            WatchTogetherRoomScreen(
+                room = activeRoom!!,
+                isHost = activeRoom!!.hostName == state.username,
+                onBack = { activeRoom = null },
+                onLeave = { activeRoom = null },
+            )
+        }
+        return
+    }
+
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(16.dp, 12.dp, 16.dp, 116.dp),
@@ -45,7 +73,7 @@ fun SocialScreen(
         }
         item {
             Surface(
-                onClick = onWatchTogetherClick,
+                onClick = { watchTogetherOpen = true },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(24.dp),
                 color = MaterialTheme.colorScheme.primaryContainer,
@@ -87,6 +115,37 @@ fun SocialScreen(
         }
     }
 }
+
+private fun demoWatchTogetherState() = WatchTogetherUiState(
+    isPremium = false,
+    publicRooms = listOf(
+        WatchTogetherRoomUi("wt-op", "One Piece Night", "One Piece", 1150, WatchTogetherVisibility.PUBLIC, "Rin", participants = listOf(WatchTogetherParticipantUi("rin", "Rin", "Watching", true), WatchTogetherParticipantUi("yuki", "Yuki"))),
+        WatchTogetherRoomUi("wt-sl", "Solo Leveling Marathon", "Solo Leveling", 25, WatchTogetherVisibility.PUBLIC, "Akira", participants = listOf(WatchTogetherParticipantUi("akira", "Akira", "Watching", true))),
+        WatchTogetherRoomUi("wt-jjk", "JJK Episode Talk", "Jujutsu Kaisen", 48, WatchTogetherVisibility.PUBLIC, "Mika", participants = listOf(WatchTogetherParticipantUi("mika", "Mika", "Watching", true), WatchTogetherParticipantUi("hana", "Hana"))),
+    ),
+)
+
+private fun demoWatchTogetherRoom(visibility: WatchTogetherVisibility) = WatchTogetherRoomUi(
+    id = "local-room",
+    name = "Room Saya",
+    animeTitle = "One Piece",
+    episode = 1150,
+    visibility = visibility,
+    hostName = "Akun Saya",
+    roomCode = if (visibility == WatchTogetherVisibility.PRIVATE) "KA7X2P" else "",
+    participants = listOf(WatchTogetherParticipantUi("self", "Akun Saya", "Host", true)),
+)
+
+private fun demoWatchTogetherPrivateRoom(code: String) = WatchTogetherRoomUi(
+    id = "private-$code",
+    name = "Private Room $code",
+    animeTitle = "One Piece",
+    episode = 1150,
+    visibility = WatchTogetherVisibility.PRIVATE,
+    hostName = "Host",
+    roomCode = code,
+    participants = listOf(WatchTogetherParticipantUi("host", "Host", "Watching", true)),
+)
 
 @Composable
 private fun SocialConversationCarousel(
