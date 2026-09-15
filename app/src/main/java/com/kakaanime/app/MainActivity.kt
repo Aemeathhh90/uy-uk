@@ -74,7 +74,10 @@ private fun KakaUiShell(themeState: KakaThemeState) {
     }
     val monetizationState = MonetizationUiState(diamonds = 6, isPremium = false)
 
-    BackHandler(enabled = true) {
+    // Intercept Android Back only while a nested UI state is active.
+    // At the Home root, BackHandler is disabled so Android handles the normal Activity exit.
+    val hasNestedUi = gateReason != null || overlay != null || showMonetization || selectedAnime != null || selectedUserId != null || selectedTab != KakaTab.HOME
+    BackHandler(enabled = hasNestedUi) {
         when {
             gateReason != null -> gateReason = null
             overlay != null -> overlay = null
@@ -82,8 +85,6 @@ private fun KakaUiShell(themeState: KakaThemeState) {
             selectedAnime != null -> selectedAnime = null
             selectedUserId != null -> selectedUserId = null
             selectedTab != KakaTab.HOME -> selectedTab = KakaTab.HOME
-            else -> (LocalBackDispatcherOwner.current as? androidx.activity.OnBackPressedDispatcherOwner)
-                ?.onBackPressedDispatcher?.onBackPressed()
         }
     }
 
