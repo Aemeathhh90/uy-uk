@@ -75,7 +75,11 @@ fun CalendarScreen(
         }
         if (selectedDay == null || selectedDay.episodes.isEmpty()) {
             item {
-                Surface(Modifier.fillMaxWidth(), RoundedCornerShape(20.dp), color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = .42f)) {
+                Surface(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(20.dp),
+                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = .42f),
+                ) {
                     Column(Modifier.padding(18.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                         Text("Belum ada episode di hari ini.", fontWeight = FontWeight.SemiBold)
                         Text("Cek hari lain untuk jadwal berikutnya.", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -114,7 +118,11 @@ private fun CalendarEpisodeRow(item: CalendarEpisodeUi, onClick: () -> Unit) {
         color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = .36f),
     ) {
         Row(Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
-            Surface(RoundedCornerShape(13.dp), color = MaterialTheme.colorScheme.primary.copy(alpha = .13f)) {
+            Surface(
+                modifier = Modifier,
+                shape = RoundedCornerShape(13.dp),
+                color = MaterialTheme.colorScheme.primary.copy(alpha = .13f),
+            ) {
                 Column(Modifier.padding(horizontal = 12.dp, vertical = 9.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                     Text("EP", fontSize = 9.sp, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
                     Text(item.episode.toString(), fontSize = 17.sp, fontWeight = FontWeight.ExtraBold)
@@ -126,7 +134,11 @@ private fun CalendarEpisodeRow(item: CalendarEpisodeUi, onClick: () -> Unit) {
                 Text(item.timeLabel.ifBlank { "Episode ${item.episode}" }, fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             if (item.isNew) {
-                Surface(shape = RoundedCornerShape(999.dp), color = MaterialTheme.colorScheme.primary.copy(alpha = .14f)) {
+                Surface(
+                    modifier = Modifier,
+                    shape = RoundedCornerShape(999.dp),
+                    color = MaterialTheme.colorScheme.primary.copy(alpha = .14f),
+                ) {
                     Text("NEW", Modifier.padding(horizontal = 8.dp, vertical = 4.dp), fontSize = 9.sp, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
                 }
             }
