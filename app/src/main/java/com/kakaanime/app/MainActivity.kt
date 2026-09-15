@@ -59,8 +59,16 @@ class MainActivity : ComponentActivity() {
 
 private enum class OverlayScreen { NOTIFICATIONS, EDIT_PROFILE, THEME }
 
-private enum class KakaDestination(val rank: Int) {
-    HOME(0), CALENDAR(1), SOCIAL(2), LIBRARY(3), PROFILE(4), OTHER_PROFILE(5), DETAIL(6), MONETIZATION(7),
+private sealed interface KakaDestination {
+    val rank: Int
+    data object Home : KakaDestination { override val rank = 0 }
+    data object Calendar : KakaDestination { override val rank = 1 }
+    data object Social : KakaDestination { override val rank = 2 }
+    data object Library : KakaDestination { override val rank = 3 }
+    data object Profile : KakaDestination { override val rank = 4 }
+    data class OtherProfile(val userId: String) : KakaDestination { override val rank = 5 }
+    data class Detail(val anime: HomeAnimeUi) : KakaDestination { override val rank = 6 }
+    data object Monetization : KakaDestination { override val rank = 7 }
 }
 
 @Composable
@@ -81,8 +89,6 @@ private fun KakaUiShell(themeState: KakaThemeState) {
     }
     val monetizationState = MonetizationUiState(diamonds = 6, isPremium = false)
 
-    // Intercept Android Back only while a nested UI state is active.
-    // At the Home root, BackHandler is disabled so Android handles the normal Activity exit.
     val hasNestedUi = gateReason != null || overlay != null || showMonetization || selectedAnime != null || selectedUserId != null || selectedTab != KakaTab.HOME
     BackHandler(enabled = hasNestedUi) {
         when {
@@ -95,16 +101,16 @@ private fun KakaUiShell(themeState: KakaThemeState) {
         }
     }
 
-    val destination = when {
-        selectedAnime != null -> KakaDestination.DETAIL
-        selectedUserId != null -> KakaDestination.OTHER_PROFILE
-        showMonetization -> KakaDestination.MONETIZATION
+    val destination: KakaDestination = when {
+        selectedAnime != null -> KakaDestination.Detail(selectedAnime!!)
+        selectedUserId != null -> KakaDestination.OtherProfile(selectedUserId!!)
+        showMonetization -> KakaDestination.Monetization
         else -> when (selectedTab) {
-            KakaTab.HOME -> KakaDestination.HOME
-            KakaTab.CALENDAR -> KakaDestination.CALENDAR
-            KakaTab.SOCIAL -> KakaDestination.SOCIAL
-            KakaTab.LIBRARY -> KakaDestination.LIBRARY
-            KakaTab.PROFILE -> KakaDestination.PROFILE
+            KakaTab.HOME -> KakaDestination.Home
+            KakaTab.CALENDAR -> KakaDestination.Calendar
+            KakaTab.SOCIAL -> KakaDestination.Social
+            KakaTab.LIBRARY -> KakaDestination.Library
+            KakaTab.PROFILE -> KakaDestination.Profile
         }
     }
 
@@ -117,13 +123,14 @@ private fun KakaUiShell(themeState: KakaThemeState) {
                     targetState = destination,
                     rank = { it.rank },
                     deepNavigation = { from, to ->
-                        from == KakaDestination.DETAIL || to == KakaDestination.DETAIL ||
-                            from == KakaDestination.OTHER_PROFILE || to == KakaDestination.OTHER_PROFILE ||
-                            from == KakaDestination.MONETIZATION || to == KakaDestination.MONETIZATION
+                        from is KakaDestination.Detail || to is KakaDestination.Detail ||
+                            from is KakaDestination.OtherProfile || to is KakaDestination.OtherProfile ||
+                            from is KakaDestination.Monetization || to is KakaDestination.Monetization
                     },
                 ) { target ->
                     when (target) {
-                        KakaDestination.DETAIL -> selectedAnime?.let { anime ->
+                        is KakaDestination.Detail -> {
+                            val anime = target.anime
                             AnimeDetailScreen(
                                 anime = demoDetail(anime), episodes = demoEpisodes(),
                                 seasons = listOf(SeasonUi("s1", "Season 1"), SeasonUi("s2", "Season 2")),
@@ -134,31 +141,31 @@ private fun KakaUiShell(themeState: KakaThemeState) {
                                 onEpisodeGate = { gateReason = EpisodeAccessReason.NO_DIAMONDS },
                             )
                         }
-                        KakaDestination.OTHER_PROFILE -> OtherUserProfileScreen(
-                            state = demoOtherProfile(selectedUserId ?: ""),
+                        is KakaDestination.OtherProfile -> OtherUserProfileScreen(
+                            state = demoOtherProfile(target.userId),
                             onBack = { selectedUserId = null }, onFollowToggle = {},
                             onAnimeClick = { value -> demoHomeState().anime.firstOrNull { it.id == value || it.title == value }?.let { selectedAnime = it } },
                         )
-                        KakaDestination.MONETIZATION -> DiamondPremiumScreen(state = monetizationState, onWatchAd = {}, onPremiumClick = {})
-                        KakaDestination.HOME -> HomeV1Screen(
+                        KakaDestination.Monetization -> DiamondPremiumScreen(state = monetizationState, onWatchAd = {}, onPremiumClick = {})
+                        KakaDestination.Home -> HomeV1Screen(
                             state = demoHomeState().copy(username = profile.username),
                             onAnimeClick = { selectedAnime = it }, onContinueWatchingClick = { selectedAnime = it.anime },
                             onProfileClick = { selectedTab = KakaTab.PROFILE },
                             onNotificationsClick = { overlay = OverlayScreen.NOTIFICATIONS },
                             onDiamondClick = { showMonetization = true }, onPremiumClick = { showMonetization = true }, onWatchTogetherClick = {},
                         )
-                        KakaDestination.SOCIAL -> SocialScreen(state = demoSocialState(profile.username), onProfileClick = { selectedUserId = it }, onWatchTogetherClick = {})
-                        KakaDestination.LIBRARY -> LibraryScreen(
+                        KakaDestination.Social -> SocialScreen(state = demoSocialState(profile.username), onProfileClick = { selectedUserId = it }, onWatchTogetherClick = {})
+                        KakaDestination.Library -> LibraryScreen(
                             state = LibraryUiState(favorites = demoHomeState().anime.filter { it.id in favorites }),
                             onAnimeClick = { selectedAnime = it }, onFavoriteToggle = { anime -> favorites = favorites - anime.id },
                         )
-                        KakaDestination.PROFILE -> MyProfileScreen(
+                        KakaDestination.Profile -> MyProfileScreen(
                             state = demoMyProfile(favorites, profile),
                             onEditProfile = { overlay = OverlayScreen.EDIT_PROFILE },
                             onAppearanceClick = { overlay = OverlayScreen.THEME },
                             onAnimeClick = { id -> demoHomeState().anime.firstOrNull { it.id == id }?.let { selectedAnime = it } },
                         )
-                        KakaDestination.CALENDAR -> CalendarScreen(state = demoCalendarState(), onAnimeClick = { selectedAnime = it })
+                        KakaDestination.Calendar -> CalendarScreen(state = demoCalendarState(), onAnimeClick = { selectedAnime = it })
                     }
                 }
             } else {
