@@ -61,12 +61,8 @@ fun SocialScreen(
                 }
             }
         }
-        item {
-            SocialConversationCarousel(messages = state.messages, groups = state.chatGroups)
-        }
-        item {
-            Text("Active Friends", fontSize = 18.sp, fontWeight = androidx.compose.ui.text.font.FontWeight.ExtraBold)
-        }
+        item { SocialConversationCarousel(messages = state.messages, groups = state.chatGroups) }
+        item { Text("Active Friends", fontSize = 18.sp, fontWeight = androidx.compose.ui.text.font.FontWeight.ExtraBold) }
         if (state.friends.isEmpty()) {
             item {
                 Surface(Modifier.fillMaxWidth(), RoundedCornerShape(20.dp), color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = .42f)) {
@@ -75,10 +71,7 @@ fun SocialScreen(
             }
         } else {
             items(state.friends, key = { it.id }) { friend ->
-                Row(
-                    Modifier.fillMaxWidth().clickable { onProfileClick(friend.id) }.padding(vertical = 5.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
+                Row(Modifier.fillMaxWidth().clickable { onProfileClick(friend.id) }.padding(vertical = 5.dp), verticalAlignment = Alignment.CenterVertically) {
                     Surface(Modifier.size(46.dp), CircleShape, color = MaterialTheme.colorScheme.surfaceVariant) {
                         Box(contentAlignment = Alignment.Center) { Text(friend.username.take(2).uppercase(), fontSize = 12.sp, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold) }
                     }
@@ -94,10 +87,7 @@ fun SocialScreen(
 }
 
 @Composable
-private fun SocialConversationCarousel(
-    messages: List<SocialMessageUi>,
-    groups: List<SocialChatGroupUi>,
-) {
+private fun SocialConversationCarousel(messages: List<SocialMessageUi>, groups: List<SocialChatGroupUi>) {
     LazyRow(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(12.dp),
