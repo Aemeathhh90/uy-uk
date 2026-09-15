@@ -24,6 +24,12 @@ data class SocialChatGroupUi(
     val unreadCount: Int = 0,
 )
 
+data class SocialGroupMemberUi(
+    val id: String,
+    val username: String,
+    val isSelf: Boolean = false,
+)
+
 data class SocialChatMessageUi(
     val id: String,
     val senderName: String,
@@ -37,6 +43,7 @@ data class SocialChatUiState(
     val title: String,
     val subtitle: String,
     val isGroup: Boolean = false,
+    val members: List<SocialGroupMemberUi> = emptyList(),
     val messages: List<SocialChatMessageUi> = emptyList(),
 )
 
