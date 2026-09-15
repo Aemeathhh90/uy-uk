@@ -62,6 +62,12 @@ fun SocialScreen(
             }
         }
         item {
+            SocialConversationCarousel(
+                messages = state.messages,
+                groups = state.chatGroups,
+            )
+        }
+        item {
             Text("Active Friends", fontSize = 18.sp, fontWeight = androidx.compose.ui.text.font.FontWeight.ExtraBold)
         }
         if (state.friends.isEmpty()) {
@@ -85,6 +91,128 @@ fun SocialScreen(
                         Text(friend.status, fontSize = 11.sp, color = MaterialTheme.colorScheme.primary)
                     }
                 }
+            }
+        }
+    }
+}
+
+@Composable
+private fun SocialConversationCarousel(
+    messages: List<SocialMessageUi>,
+    groups: List<SocialChatGroupUi>,
+) {
+    LazyRow(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        contentPadding = PaddingValues(end = 8.dp),
+    ) {
+        item {
+            ConversationListCard(
+                title = "Recently Message",
+                modifier = Modifier.width(340.dp),
+            ) {
+                if (messages.isEmpty()) {
+                    ConversationEmpty("Belum ada percakapan terbaru.")
+                } else {
+                    messages.take(5).forEach { message ->
+                        MessageRow(message)
+                    }
+                }
+            }
+        }
+        item {
+            ConversationListCard(
+                title = "Chat Group",
+                modifier = Modifier.width(340.dp),
+            ) {
+                if (groups.isEmpty()) {
+                    ConversationEmpty("Belum ada grup anime.")
+                } else {
+                    groups.take(5).forEach { group ->
+                        GroupRow(group)
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun ConversationListCard(
+    title: String,
+    modifier: Modifier = Modifier,
+    content: @Composable ColumnScope.() -> Unit,
+) {
+    Surface(
+        modifier = modifier,
+        shape = RoundedCornerShape(22.dp),
+        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = .32f),
+    ) {
+        Column(Modifier.padding(14.dp)) {
+            Text(title, fontSize = 18.sp, fontWeight = androidx.compose.ui.text.font.FontWeight.ExtraBold)
+            Spacer(Modifier.height(8.dp))
+            content()
+        }
+    }
+}
+
+@Composable
+private fun ConversationEmpty(text: String) {
+    Text(
+        text,
+        modifier = Modifier.padding(vertical = 16.dp),
+        fontSize = 12.sp,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+    )
+}
+
+@Composable
+private fun MessageRow(message: SocialMessageUi) {
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(vertical = 7.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Surface(Modifier.size(40.dp), CircleShape, color = MaterialTheme.colorScheme.surface) {
+            Box(contentAlignment = Alignment.Center) {
+                Text(message.username.take(2).uppercase(), fontSize = 11.sp, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold)
+            }
+        }
+        Spacer(Modifier.width(10.dp))
+        Column(Modifier.weight(1f)) {
+            Text(message.username, fontSize = 13.sp, fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold)
+            Text(message.preview, fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1)
+        }
+        Column(horizontalAlignment = Alignment.End) {
+            if (message.timeLabel.isNotBlank()) Text(message.timeLabel, fontSize = 9.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            if (message.unreadCount > 0) {
+                Spacer(Modifier.height(4.dp))
+                Text("${message.unreadCount}", fontSize = 9.sp, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+            }
+        }
+    }
+}
+
+@Composable
+private fun GroupRow(group: SocialChatGroupUi) {
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(vertical = 7.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Surface(Modifier.size(40.dp), RoundedCornerShape(12.dp), color = MaterialTheme.colorScheme.surface) {
+            Box(contentAlignment = Alignment.Center) {
+                Text(group.name.take(2).uppercase(), fontSize = 11.sp, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold)
+            }
+        }
+        Spacer(Modifier.width(10.dp))
+        Column(Modifier.weight(1f)) {
+            Text(group.name, fontSize = 13.sp, fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold, maxLines = 1)
+            Text("${group.memberCount} anggota • ${group.lastMessage}", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1)
+        }
+        Column(horizontalAlignment = Alignment.End) {
+            if (group.timeLabel.isNotBlank()) Text(group.timeLabel, fontSize = 9.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            if (group.unreadCount > 0) {
+                Spacer(Modifier.height(4.dp))
+                Text("${group.unreadCount}", fontSize = 9.sp, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
             }
         }
     }
