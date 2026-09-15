@@ -20,7 +20,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Key
 import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.Tune
@@ -43,7 +42,11 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
 import coil.compose.AsyncImage
+import com.kakaanime.app.ui.motion.KakaMotion
+import com.kakaanime.app.ui.update.UpdateDialog
+import com.kakaanime.app.ui.update.UpdateUiState
 
 @Composable
 fun HomeV1Screen(
@@ -55,6 +58,8 @@ fun HomeV1Screen(
     onDiamondClick: () -> Unit = {},
     onPremiumClick: () -> Unit = {},
     onWatchTogetherClick: () -> Unit = {},
+    updateState: UpdateUiState = UpdateUiState(),
+    onUpdateClick: () -> Unit = {},
 ) {
     var query by remember(state.searchQuery) { mutableStateOf(state.searchQuery) }
     var filter by remember(state.selectedFilter) { mutableStateOf(state.selectedFilter) }
@@ -72,27 +77,71 @@ fun HomeV1Screen(
         }
     }
 
-    LazyColumn(
-        modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background),
-        contentPadding = PaddingValues(16.dp, 10.dp, 16.dp, 116.dp),
-        verticalArrangement = Arrangement.spacedBy(18.dp),
-    ) {
-        item { HomeTopBar(query, { query = it }, showFilters, { showFilters = !showFilters }, onNotificationsClick) }
-        if (showFilters) item {
-            LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                items(HomeFilter.entries) { option -> FilterChip(selected = filter == option, onClick = { filter = option }, label = { Text(option.label) }) }
+    Box(Modifier.fillMaxSize()) {
+        LazyColumn(
+            modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background),
+            contentPadding = PaddingValues(16.dp, 10.dp, 16.dp, 116.dp),
+            verticalArrangement = Arrangement.spacedBy(18.dp),
+        ) {
+            item { HomeTopBar(query, { query = it }, showFilters, { showFilters = !showFilters }, onNotificationsClick) }
+            if (showFilters) item {
+                LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    items(HomeFilter.entries) { option -> FilterChip(selected = filter == option, onClick = { filter = option }, label = { Text(option.label) }) }
+                }
+            }
+            item { HomeProfileHeader(state.username, state.avatarUrl, state.diamonds, state.isPremium, onProfileClick, onDiamondClick, onPremiumClick, onWatchTogetherClick) }
+            if (query.isBlank()) {
+                if (state.continueWatching.isNotEmpty()) item { HomeContinueSection(state.continueWatching, onContinueWatchingClick) }
+                item { HomeAnimeSection("New Updates", state.anime.filter { it.isNew }.ifEmpty { state.anime.sortedByDescending { it.latestEpisode } }, onAnimeClick, "NEW") }
+                item { HomeAnimeSection("Trending Now", state.anime, onAnimeClick) }
+            } else item {
+                if (filtered.isEmpty()) Surface(Modifier.fillMaxWidth(), RoundedCornerShape(18.dp), color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = .45f)) { Text("Anime tidak ditemukan", Modifier.padding(18.dp), color = MaterialTheme.colorScheme.onSurfaceVariant) }
+                else HomeAnimeSection("Hasil Pencarian", filtered, onAnimeClick = onAnimeClick)
             }
         }
-        item {
-            HomeProfileHeader(state.username, state.avatarUrl, state.diamonds, state.isPremium, onProfileClick, onDiamondClick, onPremiumClick, onWatchTogetherClick)
+
+        if (updateState.isUpdateAvailable) {
+            Dialog(onDismissRequest = {}) {
+                androidx.compose.animation.AnimatedVisibility(
+                    visible = true,
+                    enter = KakaMotion.modalEnterTransition,
+                    exit = KakaMotion.modalExitTransition,
+                ) {
+                    UpdateDialogContent(updateState, onLater = {}, onUpdate = onUpdateClick)
+                }
+            }
         }
-        if (query.isBlank()) {
-            if (state.continueWatching.isNotEmpty()) item { HomeContinueSection(state.continueWatching, onContinueWatchingClick) }
-            item { HomeAnimeSection("New Updates", state.anime.filter { it.isNew }.ifEmpty { state.anime.sortedByDescending { it.latestEpisode } }, onAnimeClick, "NEW") }
-            item { HomeAnimeSection("Trending Now", state.anime, onAnimeClick) }
-        } else item {
-            if (filtered.isEmpty()) Surface(Modifier.fillMaxWidth(), RoundedCornerShape(18.dp), color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = .45f)) { Text("Anime tidak ditemukan", Modifier.padding(18.dp), color = MaterialTheme.colorScheme.onSurfaceVariant) }
-            else HomeAnimeSection("Hasil Pencarian", filtered, onAnimeClick = onAnimeClick)
+    }
+}
+
+@Composable
+private fun UpdateDialogContent(state: UpdateUiState, onLater: () -> Unit, onUpdate: () -> Unit) {
+    Surface(
+        modifier = Modifier.fillMaxWidth(.9f),
+        shape = RoundedCornerShape(28.dp),
+        color = MaterialTheme.colorScheme.surface,
+        tonalElevation = 6.dp,
+    ) {
+        Column(Modifier.padding(22.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                Surface(Modifier.size(58.dp), RoundedCornerShape(16.dp), color = MaterialTheme.colorScheme.primary) {
+                    Text("↓", Modifier.padding(top = 7.dp), fontSize = 34.sp, fontWeight = FontWeight.ExtraBold, color = MaterialTheme.colorScheme.onPrimary, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+                }
+                Spacer(Modifier.weight(1f))
+            }
+            Text("New Update Available", fontSize = 24.sp, fontWeight = FontWeight.ExtraBold)
+            Text("Versi baru KakaAnime sudah tersedia. Update untuk mendapatkan fitur dan perbaikan terbaru.", color = MaterialTheme.colorScheme.onSurfaceVariant, lineHeight = 20.sp)
+            Surface(Modifier.fillMaxWidth(), RoundedCornerShape(16.dp), color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = .45f)) {
+                Text("Version ${state.versionLabel}", Modifier.padding(horizontal = 14.dp, vertical = 12.dp), fontSize = 15.sp, fontWeight = FontWeight.Bold)
+            }
+            if (state.changelog.isNotEmpty()) {
+                Text("Perubahan", fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                state.changelog.take(5).forEach { Text("• $it", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant) }
+            }
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                androidx.compose.material3.OutlinedButton(onClick = onLater, modifier = Modifier.weight(1f), shape = RoundedCornerShape(18.dp)) { Text("Nanti") }
+                androidx.compose.material3.Button(onClick = onUpdate, modifier = Modifier.weight(1f), shape = RoundedCornerShape(18.dp)) { Text("Update") }
+            }
         }
     }
 }
