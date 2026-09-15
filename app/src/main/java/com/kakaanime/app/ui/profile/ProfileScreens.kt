@@ -9,6 +9,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Favorite
+import androidx.compose.material.icons.outlined.Palette
 import androidx.compose.material.icons.outlined.PlayCircle
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -22,8 +23,9 @@ import androidx.compose.ui.unit.sp
 fun MyProfileScreen(
     state: ProfileUiState,
     onEditProfile: () -> Unit = {},
+    onAppearanceClick: () -> Unit = {},
     onAnimeClick: (String) -> Unit = {},
-) = ProfileContent(state, onEditProfile, {}, onAnimeClick)
+) = ProfileContent(state, onEditProfile, onAppearanceClick, {}, onAnimeClick)
 
 @Composable
 fun OtherUserProfileScreen(
@@ -37,7 +39,7 @@ fun OtherUserProfileScreen(
             Text("‹", fontSize = 30.sp, modifier = Modifier.clickable(onClick = onBack).padding(end = 12.dp))
             Text("Profile", fontSize = 20.sp, fontWeight = FontWeight.Bold)
         }
-        ProfileContent(Modifier.weight(1f), state, {}, onFollowToggle, onAnimeClick)
+        ProfileContent(Modifier.weight(1f), state, {}, {}, onFollowToggle, onAnimeClick)
     }
 }
 
@@ -45,15 +47,17 @@ fun OtherUserProfileScreen(
 private fun ProfileContent(
     state: ProfileUiState,
     onEditProfile: () -> Unit,
+    onAppearanceClick: () -> Unit,
     onFollowToggle: () -> Unit,
     onAnimeClick: (String) -> Unit,
-) = ProfileContent(Modifier.fillMaxSize(), state, onEditProfile, onFollowToggle, onAnimeClick)
+) = ProfileContent(Modifier.fillMaxSize(), state, onEditProfile, onAppearanceClick, onFollowToggle, onAnimeClick)
 
 @Composable
 private fun ProfileContent(
     modifier: Modifier,
     state: ProfileUiState,
     onEditProfile: () -> Unit,
+    onAppearanceClick: () -> Unit,
     onFollowToggle: () -> Unit,
     onAnimeClick: (String) -> Unit,
 ) {
@@ -87,50 +91,46 @@ private fun ProfileContent(
                 }
             }
         }
-        item {
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                ProfileStat("Watched", state.watchedCount, Modifier.weight(1f))
-                ProfileStat("Favorite", state.favoriteCount, Modifier.weight(1f))
-                ProfileStat("Following", state.followingCount, Modifier.weight(1f))
+        if (state.isSelf) {
+            item {
+                Surface(onClick = onAppearanceClick, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(18.dp), color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = .30f)) {
+                    Row(Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Icon(Icons.Outlined.Palette, null, tint = MaterialTheme.colorScheme.primary)
+                        Spacer(Modifier.width(12.dp))
+                        Column(Modifier.weight(1f)) {
+                            Text("Tampilan", fontWeight = FontWeight.SemiBold)
+                            Text("Warna aksen dan mode tampilan", fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                        Text("›", fontSize = 22.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                }
             }
         }
+        item { Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            ProfileStat("Watched", state.watchedCount, Modifier.weight(1f))
+            ProfileStat("Favorite", state.favoriteCount, Modifier.weight(1f))
+            ProfileStat("Following", state.followingCount, Modifier.weight(1f))
+        }}
         if (state.watchingTitles.isNotEmpty()) {
             item { Text("Watching Activity", fontSize = 18.sp, fontWeight = FontWeight.ExtraBold) }
-            items(state.watchingTitles) { title ->
-                ListRow(title, "Sedang ditonton", Icons.Outlined.PlayCircle) { onAnimeClick(title) }
-            }
+            items(state.watchingTitles) { title -> ListRow(title, "Sedang ditonton", Icons.Outlined.PlayCircle) { onAnimeClick(title) } }
         }
         item { Text("Favorite Anime", fontSize = 18.sp, fontWeight = FontWeight.ExtraBold) }
-        if (state.favorites.isEmpty()) {
-            item { Text("Belum ada anime favorit.", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant) }
-        } else {
-            items(state.favorites, key = { it.id }) { anime ->
-                ListRow(anime.title, "Episode ${anime.latestEpisode} • ★ ${anime.rating}", Icons.Outlined.Favorite) { onAnimeClick(anime.id) }
-            }
-        }
+        if (state.favorites.isEmpty()) item { Text("Belum ada anime favorit.", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant) }
+        else items(state.favorites, key = { it.id }) { anime -> ListRow(anime.title, "Episode ${anime.latestEpisode} • ★ ${anime.rating}", Icons.Outlined.Favorite) { onAnimeClick(anime.id) } }
     }
 }
 
 @Composable
 private fun ProfileStat(label: String, value: Int, modifier: Modifier) {
     Surface(modifier, RoundedCornerShape(16.dp), color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = .42f)) {
-        Column(Modifier.padding(12.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(value.toString(), fontSize = 17.sp, fontWeight = FontWeight.ExtraBold)
-            Text(label, fontSize = 9.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        }
+        Column(Modifier.padding(12.dp), horizontalAlignment = Alignment.CenterHorizontally) { Text(value.toString(), fontSize = 17.sp, fontWeight = FontWeight.ExtraBold); Text(label, fontSize = 9.sp, color = MaterialTheme.colorScheme.onSurfaceVariant) }
     }
 }
 
 @Composable
 private fun ListRow(title: String, subtitle: String, icon: androidx.compose.ui.graphics.vector.ImageVector, onClick: () -> Unit) {
     Surface(onClick = onClick, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(18.dp), color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = .30f)) {
-        Row(Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
-            Icon(icon, null, tint = MaterialTheme.colorScheme.primary)
-            Spacer(Modifier.width(12.dp))
-            Column {
-                Text(title, fontWeight = FontWeight.SemiBold)
-                Text(subtitle, fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
-        }
+        Row(Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically) { Icon(icon, null, tint = MaterialTheme.colorScheme.primary); Spacer(Modifier.width(12.dp)); Column { Text(title, fontWeight = FontWeight.SemiBold); Text(subtitle, fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant) } }
     }
 }
