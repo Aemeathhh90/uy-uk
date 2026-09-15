@@ -80,6 +80,7 @@ private fun KakaUiShell(themeState: KakaThemeState) {
     var showMonetization by remember { mutableStateOf(false) }
     var gateReason by remember { mutableStateOf<EpisodeAccessReason?>(null) }
     var overlay by remember { mutableStateOf<OverlayScreen?>(null) }
+    var profileFromAvatar by remember { mutableStateOf(false) }
     var profile by remember { mutableStateOf(EditProfileUiState("Akun Saya", "Pecinta anime dan nonton bareng.", "Online")) }
     var notifications by remember {
         mutableStateOf(NotificationUiState(listOf(
@@ -97,7 +98,10 @@ private fun KakaUiShell(themeState: KakaThemeState) {
             showMonetization -> showMonetization = false
             selectedAnime != null -> selectedAnime = null
             selectedUserId != null -> selectedUserId = null
-            selectedTab != KakaTab.HOME -> selectedTab = KakaTab.HOME
+            selectedTab != KakaTab.HOME -> {
+                selectedTab = KakaTab.HOME
+                profileFromAvatar = false
+            }
         }
     }
 
@@ -115,7 +119,7 @@ private fun KakaUiShell(themeState: KakaThemeState) {
     }
 
     Scaffold(
-        bottomBar = { if (selectedAnime == null && selectedUserId == null && !showMonetization && overlay == null) KakaBottomNavigation(selectedTab = selectedTab, onTabSelected = { selectedTab = it }) },
+        bottomBar = { if (selectedAnime == null && selectedUserId == null && !showMonetization && overlay == null) KakaBottomNavigation(selectedTab = selectedTab, onTabSelected = { profileFromAvatar = false; selectedTab = it }) },
     ) { padding ->
         Box(Modifier.padding(padding)) {
             if (overlay == null) {
@@ -125,7 +129,8 @@ private fun KakaUiShell(themeState: KakaThemeState) {
                     deepNavigation = { from, to ->
                         from is KakaDestination.Detail || to is KakaDestination.Detail ||
                             from is KakaDestination.OtherProfile || to is KakaDestination.OtherProfile ||
-                            from is KakaDestination.Monetization || to is KakaDestination.Monetization
+                            from is KakaDestination.Monetization || to is KakaDestination.Monetization ||
+                            (profileFromAvatar && (to is KakaDestination.Profile || from is KakaDestination.Profile))
                     },
                 ) { target ->
                     when (target) {
@@ -150,7 +155,7 @@ private fun KakaUiShell(themeState: KakaThemeState) {
                         KakaDestination.Home -> HomeV1Screen(
                             state = demoHomeState().copy(username = profile.username),
                             onAnimeClick = { selectedAnime = it }, onContinueWatchingClick = { selectedAnime = it.anime },
-                            onProfileClick = { selectedTab = KakaTab.PROFILE },
+                            onProfileClick = { profileFromAvatar = true; selectedTab = KakaTab.PROFILE },
                             onNotificationsClick = { overlay = OverlayScreen.NOTIFICATIONS },
                             onDiamondClick = { showMonetization = true }, onPremiumClick = { showMonetization = true }, onWatchTogetherClick = {},
                         )
