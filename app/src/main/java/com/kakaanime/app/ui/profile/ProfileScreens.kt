@@ -3,7 +3,6 @@ package com.kakaanime.app.ui.profile
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -11,6 +10,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ArrowBack
+import androidx.compose.material.icons.outlined.ContentCopy
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Favorite
 import androidx.compose.material.icons.outlined.Palette
@@ -20,9 +20,12 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.delay
 
 @Composable
 fun MyProfileScreen(
@@ -66,6 +69,16 @@ private fun ProfileContent(
     onFollowToggle: () -> Unit,
     onAnimeClick: (String) -> Unit,
 ) {
+    val clipboardManager = LocalClipboardManager.current
+    var usernameCopied by remember(state.username) { mutableStateOf(false) }
+
+    LaunchedEffect(usernameCopied) {
+        if (usernameCopied) {
+            delay(1400)
+            usernameCopied = false
+        }
+    }
+
     LazyColumn(
         modifier = modifier,
         contentPadding = PaddingValues(16.dp, 8.dp, 16.dp, 116.dp),
@@ -85,6 +98,35 @@ private fun ProfileContent(
                             IconButton(onClick = onEditProfile) { Icon(Icons.Outlined.Edit, "Edit profile") }
                         } else {
                             Button(onClick = onFollowToggle) { Text(if (state.isFollowing) "Following" else "Follow") }
+                        }
+                    }
+                    Spacer(Modifier.height(10.dp))
+                    Surface(
+                        onClick = {
+                            clipboardManager.setText(AnnotatedString(state.username))
+                            usernameCopied = true
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(14.dp),
+                        color = MaterialTheme.colorScheme.surface.copy(alpha = .42f),
+                    ) {
+                        Row(
+                            Modifier.padding(horizontal = 12.dp, vertical = 9.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Column(Modifier.weight(1f)) {
+                                Text("Username", fontSize = 9.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                Text("@${state.username}", fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
+                            }
+                            Icon(
+                                if (usernameCopied) Icons.Outlined.ContentCopy else Icons.Outlined.ContentCopy,
+                                contentDescription = if (usernameCopied) "Username tersalin" else "Salin username",
+                                tint = MaterialTheme.colorScheme.primary,
+                            )
+                            if (usernameCopied) {
+                                Spacer(Modifier.width(6.dp))
+                                Text("Tersalin", fontSize = 10.sp, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.SemiBold)
+                            }
                         }
                     }
                     if (state.bio.isNotBlank()) {
