@@ -1,5 +1,6 @@
 package com.kakaanime.app.ui.social
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -57,83 +58,92 @@ fun WatchTogetherScreen(
     var showCreate by remember { mutableStateOf(false) }
     var roomCode by remember { mutableStateOf("") }
 
-    if (showCreate) {
-        CreateWatchTogetherDialog(
-            isPremium = state.isPremium,
-            onDismiss = { showCreate = false },
-            onPremiumClick = onPremiumClick,
-            onCreate = {
-                onCreateRoom(it)
-                showCreate = false
-            },
-        )
-    }
-
-    Column(Modifier.fillMaxSize()) {
-        Row(
-            Modifier.fillMaxWidth().padding(horizontal = 6.dp, vertical = 8.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            IconButton(onClick = onBack) { Icon(Icons.Outlined.ArrowBack, "Kembali") }
-            Column(Modifier.weight(1f)) {
-                Text("Watch Together", fontSize = 21.sp, fontWeight = FontWeight.ExtraBold)
-                Text("Nonton bareng secara sinkron.", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+    Box(Modifier.fillMaxSize()) {
+        Column(Modifier.fillMaxSize()) {
+            Row(
+                Modifier.fillMaxWidth().padding(horizontal = 6.dp, vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                IconButton(onClick = onBack) { Icon(Icons.Outlined.ArrowBack, "Kembali") }
+                Column(Modifier.weight(1f)) {
+                    Text("Watch Together", fontSize = 21.sp, fontWeight = FontWeight.ExtraBold)
+                    Text("Nonton bareng secara sinkron.", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+                Icon(Icons.Outlined.VideoCall, null, tint = MaterialTheme.colorScheme.primary)
             }
-            Icon(Icons.Outlined.VideoCall, null, tint = MaterialTheme.colorScheme.primary)
-        }
 
-        LazyColumn(
-            Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(16.dp, 8.dp, 16.dp, 32.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-            item {
-                CreateRoomCard(
-                    isPremium = state.isPremium,
-                    onClick = { if (state.isPremium) showCreate = true else onPremiumClick() },
-                )
-            }
-            item {
-                Surface(
-                    Modifier.fillMaxWidth(),
-                    RoundedCornerShape(22.dp),
-                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = .32f),
-                ) {
-                    Column(Modifier.padding(16.dp)) {
-                        Text("Join Private Room", fontSize = 16.sp, fontWeight = FontWeight.ExtraBold)
-                        Spacer(Modifier.height(4.dp))
-                        Text("Masukkan kode room untuk bergabung.", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        Spacer(Modifier.height(10.dp))
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            OutlinedTextField(
-                                value = roomCode,
-                                onValueChange = { roomCode = it.uppercase().take(8) },
-                                modifier = Modifier.weight(1f),
-                                singleLine = true,
-                                placeholder = { Text("ROOM CODE") },
-                            )
-                            Spacer(Modifier.width(8.dp))
-                            Button(enabled = roomCode.isNotBlank(), onClick = { onJoinByCode(roomCode.trim()) }) { Text("Join") }
+            LazyColumn(
+                Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(16.dp, 8.dp, 16.dp, 32.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                item {
+                    CreateRoomCard(
+                        isPremium = state.isPremium,
+                        onClick = { if (state.isPremium) showCreate = true else onPremiumClick() },
+                    )
+                }
+                item {
+                    Surface(
+                        Modifier.fillMaxWidth(),
+                        RoundedCornerShape(22.dp),
+                        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = .32f),
+                    ) {
+                        Column(Modifier.padding(16.dp)) {
+                            Text("Join Private Room", fontSize = 16.sp, fontWeight = FontWeight.ExtraBold)
+                            Spacer(Modifier.height(4.dp))
+                            Text("Masukkan kode room untuk bergabung.", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Spacer(Modifier.height(10.dp))
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                OutlinedTextField(
+                                    value = roomCode,
+                                    onValueChange = { roomCode = it.uppercase().filter(Char::isLetterOrDigit).take(8) },
+                                    modifier = Modifier.weight(1f),
+                                    singleLine = true,
+                                    placeholder = { Text("ROOM CODE") },
+                                )
+                                Spacer(Modifier.width(8.dp))
+                                Button(enabled = roomCode.isNotBlank(), onClick = { onJoinByCode(roomCode.trim()) }) { Text("Join") }
+                            }
                         }
                     }
                 }
-            }
-            item {
-                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                    Text("Public Rooms", Modifier.weight(1f), fontSize = 18.sp, fontWeight = FontWeight.ExtraBold)
-                    Text("${state.publicRooms.size} tersedia", fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                }
-            }
-            if (state.publicRooms.isEmpty()) {
                 item {
-                    Surface(Modifier.fillMaxWidth(), RoundedCornerShape(20.dp), color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = .3f)) {
-                        Text("Belum ada public room yang aktif.", Modifier.padding(18.dp), fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                        Text("Public Rooms", Modifier.weight(1f), fontSize = 18.sp, fontWeight = FontWeight.ExtraBold)
+                        Text("${state.publicRooms.size} tersedia", fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }
-            } else {
-                items(state.publicRooms, key = { it.id }) { room ->
-                    RoomCard(room, onJoin = { onJoinRoom(room) })
+                if (state.publicRooms.isEmpty()) {
+                    item {
+                        Surface(Modifier.fillMaxWidth(), RoundedCornerShape(20.dp), color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = .3f)) {
+                            Text("Belum ada public room yang aktif.", Modifier.padding(18.dp), fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                    }
+                } else {
+                    items(state.publicRooms, key = { it.id }) { room ->
+                        RoomCard(room, onJoin = { onJoinRoom(room) })
+                    }
                 }
+            }
+        }
+
+        if (showCreate) {
+            Box(
+                Modifier.fillMaxSize()
+                    .background(MaterialTheme.colorScheme.scrim.copy(alpha = .56f))
+                    .clickable { showCreate = false },
+                contentAlignment = Alignment.Center,
+            ) {
+                CreateWatchTogetherDialog(
+                    isPremium = state.isPremium,
+                    onDismiss = { showCreate = false },
+                    onPremiumClick = onPremiumClick,
+                    onCreate = {
+                        onCreateRoom(it)
+                        showCreate = false
+                    },
+                )
             }
         }
     }
@@ -156,11 +166,8 @@ private fun CreateRoomCard(isPremium: Boolean, onClick: () -> Unit) {
                 Text("Create Room", fontSize = 17.sp, fontWeight = FontWeight.ExtraBold)
                 Text(if (isPremium) "Buat room Public atau Private." else "Premium diperlukan untuk membuat room.", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
-            if (isPremium) {
-                Text("›", fontSize = 25.sp, color = MaterialTheme.colorScheme.primary)
-            } else {
-                Icon(Icons.Outlined.Lock, "Premium", tint = MaterialTheme.colorScheme.primary)
-            }
+            if (isPremium) Text("›", fontSize = 25.sp, color = MaterialTheme.colorScheme.primary)
+            else Icon(Icons.Outlined.Lock, "Premium", tint = MaterialTheme.colorScheme.primary)
         }
     }
 }
@@ -174,7 +181,7 @@ private fun CreateWatchTogetherDialog(
 ) {
     var visibility by remember { mutableStateOf(WatchTogetherVisibility.PUBLIC) }
     Surface(
-        Modifier.fillMaxWidth().padding(24.dp),
+        Modifier.fillMaxWidth().padding(24.dp).clickable(enabled = true, onClick = {}),
         RoundedCornerShape(26.dp),
         color = MaterialTheme.colorScheme.surface,
         tonalElevation = 5.dp,
@@ -243,6 +250,7 @@ fun WatchTogetherRoomScreen(
     isHost: Boolean,
     onBack: () -> Unit = {},
     onLeave: () -> Unit = {},
+    onCopyRoomCode: (String) -> Unit = {},
 ) {
     Column(Modifier.fillMaxSize()) {
         Row(Modifier.fillMaxWidth().padding(horizontal = 6.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -291,7 +299,7 @@ fun WatchTogetherRoomScreen(
 
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 if (room.visibility == WatchTogetherVisibility.PRIVATE && room.roomCode.isNotBlank()) {
-                    OutlinedButton(onClick = {}, modifier = Modifier.weight(1f)) {
+                    OutlinedButton(onClick = { onCopyRoomCode(room.roomCode) }, modifier = Modifier.weight(1f)) {
                         Icon(Icons.Outlined.ContentCopy, null, Modifier.size(16.dp))
                         Spacer(Modifier.width(5.dp))
                         Text(room.roomCode)
