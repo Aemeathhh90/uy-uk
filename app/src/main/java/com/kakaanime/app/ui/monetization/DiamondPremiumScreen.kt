@@ -4,7 +4,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -26,11 +25,13 @@ import androidx.compose.ui.unit.sp
 @Composable
 fun DiamondPremiumScreen(
     state: MonetizationUiState,
+    onBack: () -> Unit = {},
     onWatchAd: () -> Unit = {},
     onPremiumClick: () -> Unit = {},
 ) {
     PremiumScreen(
         state = state,
+        onBack = onBack,
         onWatchAd = onWatchAd,
         onSubscribe = { onPremiumClick() },
     )
