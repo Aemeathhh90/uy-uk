@@ -14,4 +14,12 @@ data class ProfileUiState(
     val followingCount: Int = 0,
     val isSelf: Boolean = false,
     val isFollowing: Boolean = false,
+    val supportPoints: Int = 0,
+    val supporterLevel: String = "Supporter",
+    val supporterLevelStartPoints: Int = 0,
+    val nextSupporterLevelPoints: Int = 25,
+    val nextSupporterReward: String = "Supporter Border",
+    val supporterTitle: String = "Supporter",
+    val supporterBadge: String = "Supporter",
+    val supporterBorder: String = "Basic",
 )
