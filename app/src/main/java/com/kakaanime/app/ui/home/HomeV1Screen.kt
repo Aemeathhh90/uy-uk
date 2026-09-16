@@ -37,7 +37,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
+import androidx.compose.ui.clip
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
@@ -299,12 +300,12 @@ private fun HomeFeaturedSection(featured: List<HomeAnimeUi>, onAnimeClick: (Home
                     shape = RoundedCornerShape(22.dp),
                     color = MaterialTheme.colorScheme.surfaceVariant,
                 ) {
-                    Box {
+                    Box(Modifier.fillMaxSize().clip(RoundedCornerShape(22.dp))) {
                         if (anime.posterUrl != null) {
                             AsyncImage(
                                 model = anime.posterUrl,
-                                contentDescription = anime.title,
-                                modifier = Modifier.fillMaxSize(),
+                                contentDescription = null,
+                                modifier = Modifier.fillMaxSize().blur(18.dp),
                                 contentScale = ContentScale.Crop,
                             )
                         } else {
@@ -314,35 +315,64 @@ private fun HomeFeaturedSection(featured: List<HomeAnimeUi>, onAnimeClick: (Home
                             Modifier.fillMaxSize().background(
                                 Brush.verticalGradient(
                                     listOf(
-                                        MaterialTheme.colorScheme.scrim.copy(alpha = .02f),
-                                        MaterialTheme.colorScheme.scrim.copy(alpha = .9f),
+                                        MaterialTheme.colorScheme.scrim.copy(alpha = .28f),
+                                        MaterialTheme.colorScheme.scrim.copy(alpha = .78f),
                                     )
                                 )
                             )
                         )
-                        Column(
-                            Modifier.align(Alignment.BottomStart).padding(16.dp).fillMaxWidth(),
-                            verticalArrangement = Arrangement.spacedBy(5.dp),
+                        Row(
+                            Modifier.fillMaxSize().padding(16.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(14.dp),
                         ) {
-                            Surface(shape = RoundedCornerShape(8.dp), color = MaterialTheme.colorScheme.primary.copy(alpha = .92f)) {
-                                Text("FEATURED", Modifier.padding(horizontal = 7.dp, vertical = 4.dp), fontSize = 8.sp, fontWeight = FontWeight.ExtraBold, color = MaterialTheme.colorScheme.onPrimary)
+                            Box(
+                                Modifier.width(104.dp).height(154.dp).clip(RoundedCornerShape(14.dp)).background(MaterialTheme.colorScheme.surfaceVariant)
+                            ) {
+                                if (anime.posterUrl != null) {
+                                    AsyncImage(
+                                        model = anime.posterUrl,
+                                        contentDescription = anime.title,
+                                        modifier = Modifier.fillMaxSize(),
+                                        contentScale = ContentScale.Crop,
+                                    )
+                                } else {
+                                    HomeArtwork(anime, Modifier.fillMaxSize())
+                                }
+                                Box(
+                                    Modifier.align(Alignment.BottomCenter).fillMaxWidth().height(48.dp).background(
+                                        Brush.verticalGradient(listOf(MaterialTheme.colorScheme.scrim.copy(alpha = 0f), MaterialTheme.colorScheme.scrim.copy(alpha = .72f)))
+                                    )
+                                )
                             }
-                            Text(anime.title, fontSize = 20.sp, fontWeight = FontWeight.ExtraBold, color = MaterialTheme.colorScheme.onPrimary, maxLines = 1)
-                            Text(
-                                "Ep ${anime.latestEpisode}  •  ★ ${anime.rating}  •  ${anime.status}",
-                                fontSize = 10.sp,
-                                color = MaterialTheme.colorScheme.onPrimary.copy(alpha = .86f),
-                                maxLines = 1,
-                            )
-                        }
-                        Surface(
-                            onClick = { onAnimeClick(anime) },
-                            modifier = Modifier.align(Alignment.TopEnd).padding(12.dp).size(40.dp),
-                            shape = CircleShape,
-                            color = MaterialTheme.colorScheme.scrim.copy(alpha = .62f),
-                        ) {
-                            Box(contentAlignment = Alignment.Center) {
-                                Icon(Icons.Outlined.PlayArrow, "Putar", tint = MaterialTheme.colorScheme.onPrimary)
+                            Column(
+                                Modifier.weight(1f),
+                                verticalArrangement = Arrangement.spacedBy(7.dp),
+                            ) {
+                                Surface(shape = RoundedCornerShape(8.dp), color = MaterialTheme.colorScheme.primary.copy(alpha = .92f)) {
+                                    Text("FEATURED", Modifier.padding(horizontal = 7.dp, vertical = 4.dp), fontSize = 8.sp, fontWeight = FontWeight.ExtraBold, color = MaterialTheme.colorScheme.onPrimary)
+                                }
+                                Text(anime.title, fontSize = 18.sp, fontWeight = FontWeight.ExtraBold, color = MaterialTheme.colorScheme.onPrimary, maxLines = 2)
+                                Text(
+                                    "Ep ${anime.latestEpisode}  •  ★ ${anime.rating}  •  ${anime.status}",
+                                    fontSize = 10.sp,
+                                    color = MaterialTheme.colorScheme.onPrimary.copy(alpha = .88f),
+                                    maxLines = 2,
+                                )
+                                if (anime.genre.isNotBlank()) {
+                                    Text(anime.genre, fontSize = 9.sp, color = MaterialTheme.colorScheme.onPrimary.copy(alpha = .72f), maxLines = 1)
+                                }
+                                Spacer(Modifier.height(1.dp))
+                                Surface(
+                                    onClick = { onAnimeClick(anime) },
+                                    modifier = Modifier.size(42.dp),
+                                    shape = CircleShape,
+                                    color = MaterialTheme.colorScheme.onPrimary.copy(alpha = .16f),
+                                ) {
+                                    Box(contentAlignment = Alignment.Center) {
+                                        Icon(Icons.Outlined.PlayArrow, "Putar", tint = MaterialTheme.colorScheme.onPrimary)
+                                    }
+                                }
                             }
                         }
                     }
