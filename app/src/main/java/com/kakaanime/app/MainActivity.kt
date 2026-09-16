@@ -53,6 +53,7 @@ import com.kakaanime.app.ui.theme.KakaAnimeTheme
 import com.kakaanime.app.ui.theme.KakaThemeState
 import com.kakaanime.app.ui.theme.ThemeCustomizationScreen
 import com.kakaanime.app.ui.theme.rememberKakaThemeState
+import kotlinx.coroutines.delay
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -90,6 +91,7 @@ private fun KakaUiShell(themeState: KakaThemeState) {
     var selectedGroupInfo by remember { mutableStateOf<SocialChatUiState?>(null) }
     var showMonetization by remember { mutableStateOf(false) }
     var gateReason by remember { mutableStateOf<EpisodeAccessReason?>(null) }
+    var gateVisible by remember { mutableStateOf(false) }
     var overlay by remember { mutableStateOf<OverlayScreen?>(null) }
     var profileFromAvatar by remember { mutableStateOf(false) }
     var profile by remember { mutableStateOf(EditProfileUiState("Akun Saya", "Pecinta anime dan nonton bareng.", "Online")) }
@@ -101,7 +103,16 @@ private fun KakaUiShell(themeState: KakaThemeState) {
     }
     val monetizationState = MonetizationUiState(diamonds = 6, isPremium = false)
 
-    val hasNestedUi = gateReason != null || overlay != null || showMonetization || selectedAnime != null || selectedUserId != null || selectedChat != null || selectedGroupInfo != null || selectedTab != KakaTab.HOME
+    LaunchedEffect(gateReason) {
+        if (gateReason != null) {
+            gateVisible = true
+        } else if (gateVisible) {
+            delay(150)
+            gateVisible = false
+        }
+    }
+
+    val hasNestedUi = gateReason != null || gateVisible || overlay != null || showMonetization || selectedAnime != null || selectedUserId != null || selectedChat != null || selectedGroupInfo != null || selectedTab != KakaTab.HOME
     BackHandler(enabled = hasNestedUi) {
         when {
             gateReason != null -> gateReason = null
@@ -249,19 +260,21 @@ private fun KakaUiShell(themeState: KakaThemeState) {
                 }
             }
 
-            gateReason?.let { reason ->
+            if (gateVisible || gateReason != null) {
                 Dialog(onDismissRequest = { gateReason = null }) {
                     AnimatedVisibility(
-                        visible = true,
+                        visible = gateVisible && gateReason != null,
                         enter = KakaMotion.modalEnterTransition,
                         exit = KakaMotion.modalExitTransition,
                     ) {
-                        EpisodeGateDialog(
-                            reason = reason,
-                            onWatchAd = { gateReason = null },
-                            onPremiumClick = { gateReason = null; showMonetization = true },
-                            onDismiss = { gateReason = null },
-                        )
+                        gateReason?.let { reason ->
+                            EpisodeGateDialog(
+                                reason = reason,
+                                onWatchAd = { gateReason = null },
+                                onPremiumClick = { gateReason = null; showMonetization = true },
+                                onDismiss = { gateReason = null },
+                            )
+                        }
                     }
                 }
             }
