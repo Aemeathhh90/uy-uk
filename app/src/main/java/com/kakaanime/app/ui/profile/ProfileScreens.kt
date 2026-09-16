@@ -70,6 +70,7 @@ private fun ProfileContent(
     onAnimeClick: (String) -> Unit,
 ) {
     val clipboardManager = LocalClipboardManager.current
+    val displayName = state.nickname.ifBlank { state.username }
     var usernameCopied by remember(state.username) { mutableStateOf(false) }
 
     LaunchedEffect(usernameCopied) {
@@ -88,10 +89,11 @@ private fun ProfileContent(
             Surface(Modifier.fillMaxWidth(), RoundedCornerShape(24.dp), color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = .38f)) {
                 Column(Modifier.padding(18.dp)) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        ProfileAvatarMotion(state.username)
+                        ProfileAvatarMotion(displayName)
                         Spacer(Modifier.width(14.dp))
                         Column(Modifier.weight(1f)) {
-                            Text(state.username, fontSize = 20.sp, fontWeight = FontWeight.ExtraBold)
+                            Text(displayName, fontSize = 20.sp, fontWeight = FontWeight.ExtraBold)
+                            Text("@${state.username}", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                             Text(state.status, fontSize = 11.sp, color = MaterialTheme.colorScheme.primary)
                         }
                         if (state.isSelf) {
@@ -119,7 +121,7 @@ private fun ProfileContent(
                                 Text("@${state.username}", fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
                             }
                             Icon(
-                                if (usernameCopied) Icons.Outlined.ContentCopy else Icons.Outlined.ContentCopy,
+                                Icons.Outlined.ContentCopy,
                                 contentDescription = if (usernameCopied) "Username tersalin" else "Salin username",
                                 tint = MaterialTheme.colorScheme.primary,
                             )
@@ -167,9 +169,9 @@ private fun ProfileContent(
 }
 
 @Composable
-private fun ProfileAvatarMotion(username: String) {
-    var started by remember(username) { mutableStateOf(false) }
-    LaunchedEffect(username) { started = true }
+private fun ProfileAvatarMotion(name: String) {
+    var started by remember(name) { mutableStateOf(false) }
+    LaunchedEffect(name) { started = true }
     val scale by animateFloatAsState(
         targetValue = if (started) 1f else .86f,
         animationSpec = tween(260, easing = FastOutSlowInEasing),
@@ -190,7 +192,7 @@ private fun ProfileAvatarMotion(username: String) {
         color = MaterialTheme.colorScheme.surface,
     ) {
         Box(contentAlignment = Alignment.Center) {
-            Text(username.take(2).uppercase(), fontSize = 20.sp, fontWeight = FontWeight.ExtraBold, color = MaterialTheme.colorScheme.primary)
+            Text(name.take(2).uppercase(), fontSize = 20.sp, fontWeight = FontWeight.ExtraBold, color = MaterialTheme.colorScheme.primary)
         }
     }
 }
