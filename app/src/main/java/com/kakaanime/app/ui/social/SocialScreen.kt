@@ -36,7 +36,7 @@ fun SocialScreen(
     if (watchTogetherOpen) {
         if (activeRoom == null) {
             WatchTogetherScreen(
-                state = demoWatchTogetherState(),
+                state = demoWatchTogetherState(state.isPremium),
                 onBack = { watchTogetherOpen = false },
                 onCreateRoom = { visibility -> activeRoom = demoWatchTogetherRoom(visibility, state.username) },
                 onJoinByCode = { activeRoom = demoWatchTogetherPrivateRoom(it) },
@@ -116,8 +116,8 @@ fun SocialScreen(
     }
 }
 
-private fun demoWatchTogetherState() = WatchTogetherUiState(
-    isPremium = false,
+private fun demoWatchTogetherState(isPremium: Boolean) = WatchTogetherUiState(
+    isPremium = isPremium,
     publicRooms = listOf(
         WatchTogetherRoomUi("wt-op", "One Piece Night", "One Piece", 1150, WatchTogetherVisibility.PUBLIC, "Rin", participants = listOf(WatchTogetherParticipantUi("rin", "Rin", "Watching", true), WatchTogetherParticipantUi("yuki", "Yuki"))),
         WatchTogetherRoomUi("wt-sl", "Solo Leveling Marathon", "Solo Leveling", 25, WatchTogetherVisibility.PUBLIC, "Akira", participants = listOf(WatchTogetherParticipantUi("akira", "Akira", "Watching", true))),
