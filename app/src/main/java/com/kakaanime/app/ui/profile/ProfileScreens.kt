@@ -7,9 +7,11 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.CardGiftcard
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Favorite
 import androidx.compose.material.icons.outlined.PlayCircle
+import androidx.compose.material.icons.outlined.WorkspacePremium
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -23,7 +25,8 @@ fun MyProfileScreen(
     state: ProfileUiState,
     onEditProfile: () -> Unit = {},
     onAnimeClick: (String) -> Unit = {},
-) = ProfileContent(state, onEditProfile, {}, onAnimeClick)
+    onSupporterClick: () -> Unit = {},
+) = ProfileContent(state, onEditProfile, {}, onAnimeClick, onSupporterClick)
 
 @Composable
 fun OtherUserProfileScreen(
@@ -37,7 +40,7 @@ fun OtherUserProfileScreen(
             Text("‹", fontSize = 30.sp, modifier = Modifier.clickable(onClick = onBack).padding(end = 12.dp))
             Text("Profile", fontSize = 20.sp, fontWeight = FontWeight.Bold)
         }
-        ProfileContent(Modifier.weight(1f), state, {}, onFollowToggle, onAnimeClick)
+        ProfileContent(Modifier.weight(1f), state, {}, onFollowToggle, onAnimeClick, {})
     }
 }
 
@@ -47,7 +50,8 @@ private fun ProfileContent(
     onEditProfile: () -> Unit,
     onFollowToggle: () -> Unit,
     onAnimeClick: (String) -> Unit,
-) = ProfileContent(Modifier.fillMaxSize(), state, onEditProfile, onFollowToggle, onAnimeClick)
+    onSupporterClick: () -> Unit,
+) = ProfileContent(Modifier.fillMaxSize(), state, onEditProfile, onFollowToggle, onAnimeClick, onSupporterClick)
 
 @Composable
 private fun ProfileContent(
@@ -56,6 +60,7 @@ private fun ProfileContent(
     onEditProfile: () -> Unit,
     onFollowToggle: () -> Unit,
     onAnimeClick: (String) -> Unit,
+    onSupporterClick: () -> Unit,
 ) {
     LazyColumn(
         modifier = modifier,
@@ -88,6 +93,9 @@ private fun ProfileContent(
             }
         }
         item {
+            SupporterCard(state, onSupporterClick)
+        }
+        item {
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 ProfileStat("Watched", state.watchedCount, Modifier.weight(1f))
                 ProfileStat("Favorite", state.favoriteCount, Modifier.weight(1f))
@@ -106,6 +114,63 @@ private fun ProfileContent(
         } else {
             items(state.favorites, key = { it.id }) { anime ->
                 ListRow(anime.title, "Episode ${anime.latestEpisode} • ★ ${anime.rating}", Icons.Outlined.Favorite) { onAnimeClick(anime.id) }
+            }
+        }
+    }
+}
+
+@Composable
+private fun SupporterCard(state: ProfileUiState, onClick: () -> Unit) {
+    val range = (state.nextSupporterLevelPoints - state.supporterLevelStartPoints).coerceAtLeast(1)
+    val progress = ((state.supportPoints - state.supporterLevelStartPoints).toFloat() / range).coerceIn(0f, 1f)
+    val remaining = (state.nextSupporterLevelPoints - state.supportPoints).coerceAtLeast(0)
+    val isMaxLevel = state.nextSupporterLevelPoints <= state.supporterLevelStartPoints || remaining == 0
+
+    Surface(
+        onClick = onClick,
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(22.dp),
+        color = MaterialTheme.colorScheme.primary.copy(alpha = .10f),
+        tonalElevation = 1.dp,
+    ) {
+        Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Surface(Modifier.size(46.dp), CircleShape, color = MaterialTheme.colorScheme.primary.copy(alpha = .14f)) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Icon(Icons.Outlined.CardGiftcard, null, tint = MaterialTheme.colorScheme.primary)
+                    }
+                }
+                Spacer(Modifier.width(12.dp))
+                Column(Modifier.weight(1f)) {
+                    Text("Kaka Supporter", fontSize = 16.sp, fontWeight = FontWeight.ExtraBold)
+                    Text(state.supporterLevel, fontSize = 11.sp, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.SemiBold)
+                }
+                Icon(Icons.Outlined.WorkspacePremium, null, tint = MaterialTheme.colorScheme.primary)
+            }
+
+            Row(verticalAlignment = Alignment.Bottom) {
+                Text(state.supportPoints.toString(), fontSize = 28.sp, fontWeight = FontWeight.ExtraBold)
+                Spacer(Modifier.width(6.dp))
+                Text("SP", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(bottom = 4.dp))
+                Spacer(Modifier.weight(1f))
+                Text("${state.supporterBadge} • ${state.supporterBorder}", fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+
+            LinearProgressIndicator(
+                progress = { progress },
+                modifier = Modifier.fillMaxWidth(),
+            )
+
+            if (isMaxLevel) {
+                Text("Level supporter sudah maksimal untuk milestone saat ini.", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            } else {
+                Text("$remaining SP lagi • Reward berikutnya: ${state.nextSupporterReward}", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+
+            if (state.isSelf) {
+                TextButton(onClick = onClick, modifier = Modifier.align(Alignment.End)) {
+                    Text("Lihat Supporter")
+                }
             }
         }
     }
