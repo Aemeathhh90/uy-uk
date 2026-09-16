@@ -17,6 +17,7 @@ import androidx.compose.material.icons.filled.SkipNext
 import androidx.compose.material.icons.filled.SkipPrevious
 import androidx.compose.material.icons.outlined.FastForward
 import androidx.compose.material.icons.outlined.HighQuality
+import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
@@ -121,7 +122,7 @@ fun PlayerScreen(
             }
         }
 
-        if (state.showSkipIntro && state.canSkipIntro) {
+        if (state.isPremium && state.showSkipIntro && state.canSkipIntro) {
             Button(onClick = onSkipIntro, modifier = Modifier.fillMaxWidth()) {
                 Icon(Icons.Outlined.FastForward, null)
                 Spacer(Modifier.width(8.dp))
@@ -129,11 +130,23 @@ fun PlayerScreen(
             }
         }
 
-        if (state.showSkipOutro && state.canSkipOutro) {
+        if (state.isPremium && state.showSkipOutro && state.canSkipOutro) {
             Button(onClick = onSkipOutro, modifier = Modifier.fillMaxWidth()) {
                 Icon(Icons.Outlined.FastForward, null)
                 Spacer(Modifier.width(8.dp))
                 Text("Skip Outro")
+            }
+        }
+
+        if (!state.isPremium && (state.showSkipIntro || state.showSkipOutro)) {
+            Row(
+                Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Icon(Icons.Outlined.Lock, contentDescription = null, modifier = Modifier.width(14.dp).height(14.dp))
+                Spacer(Modifier.width(5.dp))
+                Text("Skip Intro/Outro tersedia untuk Premium.", fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
 
