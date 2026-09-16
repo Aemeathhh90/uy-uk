@@ -7,9 +7,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.EmojiEvents
-import androidx.compose.material.icons.outlined.Groups
-import androidx.compose.material.icons.outlined.Star
-import androidx.compose.material.icons.outlined.Timer
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -25,9 +22,10 @@ fun SocialLeaderboardPreview(
     onViewAll: () -> Unit,
 ) {
     val slides = listOf(
-        LeaderboardCategory.SUPPORTER,
-        LeaderboardCategory.WATCHER,
-        LeaderboardCategory.ACHIEVEMENT,
+        LeaderboardSlide.SUPPORTER,
+        LeaderboardSlide.WATCHER_SOLO,
+        LeaderboardSlide.WATCHER_TOGETHER,
+        LeaderboardSlide.ACHIEVEMENT,
     )
     var page by remember { mutableIntStateOf(0) }
 
@@ -38,9 +36,8 @@ fun SocialLeaderboardPreview(
         }
     }
 
-    val category = slides[page]
-    val mode = if (category == LeaderboardCategory.WATCHER) LeaderboardWatcherMode.SOLO else state.watcherMode
-    val entries = demoPreviewEntries(category, mode)
+    val slide = slides[page]
+    val entries = demoPreviewEntries(slide)
 
     Surface(Modifier.fillMaxWidth(), RoundedCornerShape(24.dp), color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = .34f)) {
         Column(Modifier.padding(16.dp)) {
@@ -49,13 +46,13 @@ fun SocialLeaderboardPreview(
                 Spacer(Modifier.width(8.dp))
                 Column(Modifier.weight(1f)) {
                     Text("Leaderboard", fontSize = 17.sp, fontWeight = FontWeight.ExtraBold)
-                    Text(previewTitle(category, mode), fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(slide.title, fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
                 TextButton(onClick = onViewAll) { Text("Lihat Semua", fontSize = 10.sp) }
             }
             Spacer(Modifier.height(10.dp))
             LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp), contentPadding = PaddingValues(end = 4.dp)) {
-                items(entries.take(3), key = { it.rank }) { entry ->
+                items(entries, key = { it.rank }) { entry ->
                     Surface(Modifier.width(112.dp), RoundedCornerShape(18.dp), color = MaterialTheme.colorScheme.surface.copy(alpha = .65f)) {
                         Column(Modifier.padding(12.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                             Text(when (entry.rank) { 1 -> "#1"; 2 -> "#2"; else -> "#3" }, fontSize = 11.sp, fontWeight = FontWeight.ExtraBold, color = MaterialTheme.colorScheme.primary)
@@ -81,17 +78,19 @@ fun SocialLeaderboardPreview(
     }
 }
 
-private fun previewTitle(category: LeaderboardCategory, mode: LeaderboardWatcherMode) = when (category) {
-    LeaderboardCategory.SUPPORTER -> "Supporter • Support Points"
-    LeaderboardCategory.WATCHER -> "Watcher • ${mode.label}"
-    LeaderboardCategory.ACHIEVEMENT -> "Achievement • Achievement dibuka"
+private enum class LeaderboardSlide(val title: String) {
+    SUPPORTER("Supporter • Support Points"),
+    WATCHER_SOLO("Watcher • Solo"),
+    WATCHER_TOGETHER("Watcher • Watch Together"),
+    ACHIEVEMENT("Achievement • Achievement dibuka"),
 }
 
-private fun demoPreviewEntries(category: LeaderboardCategory, mode: LeaderboardWatcherMode): List<LeaderboardEntryUi> {
-    val values = when (category) {
-        LeaderboardCategory.SUPPORTER -> listOf("12.450 SP", "11.820 SP", "10.975 SP")
-        LeaderboardCategory.WATCHER -> if (mode == LeaderboardWatcherMode.SOLO) listOf("182j 34m", "176j 12m", "169j 48m") else listOf("94j 18m", "88j 42m", "81j 27m")
-        LeaderboardCategory.ACHIEVEMENT -> listOf("87 achievement", "82 achievement", "79 achievement")
+private fun demoPreviewEntries(slide: LeaderboardSlide): List<LeaderboardEntryUi> {
+    val values = when (slide) {
+        LeaderboardSlide.SUPPORTER -> listOf("12.450 SP", "11.820 SP", "10.975 SP")
+        LeaderboardSlide.WATCHER_SOLO -> listOf("182j 34m", "176j 12m", "169j 48m")
+        LeaderboardSlide.WATCHER_TOGETHER -> listOf("94j 18m", "88j 42m", "81j 27m")
+        LeaderboardSlide.ACHIEVEMENT -> listOf("87 achievement", "82 achievement", "79 achievement")
     }
     return listOf("Aki", "Rin", "Yuki").mapIndexed { index, name -> LeaderboardEntryUi(index + 1, name, values[index]) }
 }
