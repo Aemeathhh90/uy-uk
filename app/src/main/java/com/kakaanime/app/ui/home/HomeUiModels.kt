@@ -22,6 +22,7 @@ data class ContinueWatchingUi(
 
 data class HomeUiState(
     val anime: List<HomeAnimeUi> = emptyList(),
+    val featuredAnime: List<HomeAnimeUi> = emptyList(),
     val continueWatching: List<ContinueWatchingUi> = emptyList(),
     val diamonds: Int = 0,
     val isPremium: Boolean = false,
