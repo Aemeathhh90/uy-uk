@@ -1,5 +1,6 @@
 package com.kakaanime.app.ui.social
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -16,9 +17,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ArrowBack
@@ -38,6 +39,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -47,8 +49,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.kakaanime.app.ui.motion.KakaMotion
 import com.kakaanime.app.ui.monetization.DiamondPremiumScreen
 import com.kakaanime.app.ui.monetization.MonetizationUiState
+import kotlinx.coroutines.delay
 
 @Composable
 fun WatchTogetherScreen(
@@ -60,8 +64,26 @@ fun WatchTogetherScreen(
     onPremiumClick: () -> Unit = {},
 ) {
     var showCreate by remember { mutableStateOf(false) }
+    var createVisible by remember { mutableStateOf(false) }
     var roomCode by remember { mutableStateOf("") }
     var showPremium by remember { mutableStateOf(false) }
+    var premiumVisible by remember { mutableStateOf(false) }
+
+    LaunchedEffect(showCreate) {
+        if (showCreate) createVisible = true
+        else if (createVisible) {
+            delay(150)
+            createVisible = false
+        }
+    }
+
+    LaunchedEffect(showPremium) {
+        if (showPremium) premiumVisible = true
+        else if (premiumVisible) {
+            delay(150)
+            premiumVisible = false
+        }
+    }
 
     Box(Modifier.fillMaxSize()) {
         Column(Modifier.fillMaxSize()) {
@@ -133,46 +155,58 @@ fun WatchTogetherScreen(
             }
         }
 
-        if (showCreate) {
+        if (createVisible || showCreate) {
             Box(
                 Modifier.fillMaxSize()
                     .background(MaterialTheme.colorScheme.scrim.copy(alpha = .56f))
                     .clickable { showCreate = false },
                 contentAlignment = Alignment.Center,
             ) {
-                CreateWatchTogetherDialog(
-                    isPremium = state.isPremium,
-                    onDismiss = { showCreate = false },
-                    onPremiumClick = { showCreate = false; showPremium = true },
-                    onCreate = {
-                        onCreateRoom(it)
-                        showCreate = false
-                    },
-                )
+                AnimatedVisibility(
+                    visible = createVisible && showCreate,
+                    enter = KakaMotion.modalEnterTransition,
+                    exit = KakaMotion.modalExitTransition,
+                ) {
+                    CreateWatchTogetherDialog(
+                        isPremium = state.isPremium,
+                        onDismiss = { showCreate = false },
+                        onPremiumClick = { showCreate = false; showPremium = true },
+                        onCreate = {
+                            onCreateRoom(it)
+                            showCreate = false
+                        },
+                    )
+                }
             }
         }
 
-        if (showPremium) {
+        if (premiumVisible || showPremium) {
             Box(
                 Modifier.fillMaxSize()
                     .background(MaterialTheme.colorScheme.scrim.copy(alpha = .62f)),
             ) {
-                Column(Modifier.fillMaxSize()) {
-                    Row(
-                        Modifier.fillMaxWidth().padding(horizontal = 6.dp, vertical = 8.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        IconButton(onClick = { showPremium = false }) { Icon(Icons.Outlined.ArrowBack, "Kembali") }
-                        Column(Modifier.weight(1f)) {
-                            Text("Premium", fontSize = 20.sp, fontWeight = FontWeight.ExtraBold)
-                            Text("Upgrade untuk membuka fitur Premium.", fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                AnimatedVisibility(
+                    visible = premiumVisible && showPremium,
+                    enter = KakaMotion.modalEnterTransition,
+                    exit = KakaMotion.modalExitTransition,
+                ) {
+                    Column(Modifier.fillMaxSize()) {
+                        Row(
+                            Modifier.fillMaxWidth().padding(horizontal = 6.dp, vertical = 8.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            IconButton(onClick = { showPremium = false }) { Icon(Icons.Outlined.ArrowBack, "Kembali") }
+                            Column(Modifier.weight(1f)) {
+                                Text("Premium", fontSize = 20.sp, fontWeight = FontWeight.ExtraBold)
+                                Text("Upgrade untuk membuka fitur Premium.", fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            }
                         }
+                        DiamondPremiumScreen(
+                            state = MonetizationUiState(diamonds = 6, isPremium = false),
+                            onWatchAd = {},
+                            onPremiumClick = { onPremiumClick() },
+                        )
                     }
-                    DiamondPremiumScreen(
-                        state = MonetizationUiState(diamonds = 6, isPremium = false),
-                        onWatchAd = {},
-                        onPremiumClick = { onPremiumClick() },
-                    )
                 }
             }
         }
