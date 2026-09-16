@@ -38,7 +38,7 @@ fun LeaderboardScreen(
                 IconButton(onClick = onBack) { Icon(Icons.Outlined.ArrowBack, "Kembali") }
                 Column(Modifier.weight(1f)) {
                     Text("Leaderboard", fontSize = 24.sp, fontWeight = FontWeight.ExtraBold)
-                    Text("Lihat progres komunitas KakaAnime.", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text("Progres komunitas, tanpa mengganggu pengalaman nonton.", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
                 Icon(Icons.Outlined.EmojiEvents, null, tint = MaterialTheme.colorScheme.primary)
             }
@@ -74,9 +74,21 @@ fun LeaderboardScreen(
                 }
             }
         }
+        item { LeaderboardContext(state) }
         item { MyLeaderboardStats(state) }
+        if (state.entries.isNotEmpty()) item { Text("Peringkat teratas", fontSize = 14.sp, fontWeight = FontWeight.Bold) }
         items(state.entries, key = { "${it.rank}-${it.username}" }) { entry -> LeaderboardEntry(entry) }
     }
+}
+
+@Composable
+private fun LeaderboardContext(state: LeaderboardUiState) {
+    val text = when (state.category) {
+        LeaderboardCategory.WATCHER -> if (state.watcherMode == LeaderboardWatcherMode.SOLO) "Waktu tonton Solo yang terverifikasi dari pemutaran aktif." else "Waktu tonton Watch Together yang terverifikasi per akun."
+        LeaderboardCategory.SUPPORTER -> "Support Points (SP) dari aktivitas supporter yang tercatat."
+        LeaderboardCategory.ACHIEVEMENT -> "Jumlah achievement yang sudah dibuka."
+    }
+    Text(text, fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
 }
 
 @Composable
@@ -102,10 +114,13 @@ private fun MyLeaderboardStats(state: LeaderboardUiState) {
                 }
             }
             Spacer(Modifier.height(12.dp))
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                StatMini("Solo", state.myStats.soloWatchTime, Icons.Outlined.Timer, Modifier.weight(1f))
-                StatMini("Together", state.myStats.watchTogetherTime, Icons.Outlined.Groups, Modifier.weight(1f))
-                StatMini("SP", "${state.myStats.supportPoints}", Icons.Outlined.Star, Modifier.weight(1f))
+            when (state.category) {
+                LeaderboardCategory.WATCHER -> Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    StatMini("Solo", state.myStats.soloWatchTime, Icons.Outlined.Timer, Modifier.weight(1f))
+                    StatMini("Together", state.myStats.watchTogetherTime, Icons.Outlined.Groups, Modifier.weight(1f))
+                }
+                LeaderboardCategory.SUPPORTER -> StatMini("Support Points", "${state.myStats.supportPoints} SP", Icons.Outlined.Star, Modifier.fillMaxWidth())
+                LeaderboardCategory.ACHIEVEMENT -> StatMini("Achievement dibuka", "${state.myStats.achievements}", Icons.Outlined.EmojiEvents, Modifier.fillMaxWidth())
             }
         }
     }
@@ -114,10 +129,13 @@ private fun MyLeaderboardStats(state: LeaderboardUiState) {
 @Composable
 private fun StatMini(label: String, value: String, icon: androidx.compose.ui.graphics.vector.ImageVector, modifier: Modifier) {
     Surface(modifier, RoundedCornerShape(14.dp), color = MaterialTheme.colorScheme.surface.copy(alpha = .55f)) {
-        Column(Modifier.padding(9.dp)) {
-            Icon(icon, null, Modifier.size(16.dp), tint = MaterialTheme.colorScheme.primary)
-            Text(value, fontSize = 11.sp, fontWeight = FontWeight.Bold)
-            Text(label, fontSize = 9.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Row(Modifier.padding(10.dp), verticalAlignment = Alignment.CenterVertically) {
+            Icon(icon, null, Modifier.size(17.dp), tint = MaterialTheme.colorScheme.primary)
+            Spacer(Modifier.width(8.dp))
+            Column {
+                Text(value, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                Text(label, fontSize = 9.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
         }
     }
 }
