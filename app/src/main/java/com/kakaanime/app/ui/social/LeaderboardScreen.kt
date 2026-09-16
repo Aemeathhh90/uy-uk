@@ -3,6 +3,8 @@ package com.kakaanime.app.ui.social
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.EmojiEvents
@@ -44,12 +46,9 @@ fun LeaderboardScreen(
         item {
             SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
                 LeaderboardCategory.entries.forEachIndexed { index, category ->
-                    SegmentedButton(
-                        selected = state.category == category,
-                        onClick = { onCategorySelected(category) },
-                        shape = SegmentedButtonDefaults.itemShape(index, LeaderboardCategory.entries.size),
-                        icon = {},
-                    ) { Text(category.label, fontSize = 11.sp) }
+                    SegmentedButton(selected = state.category == category, onClick = { onCategorySelected(category) }, shape = SegmentedButtonDefaults.itemShape(index, LeaderboardCategory.entries.size), icon = {}) {
+                        Text(category.label, fontSize = 11.sp)
+                    }
                 }
             }
         }
@@ -57,12 +56,7 @@ fun LeaderboardScreen(
             item {
                 SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
                     LeaderboardWatcherMode.entries.forEachIndexed { index, mode ->
-                        SegmentedButton(
-                            selected = state.watcherMode == mode,
-                            onClick = { onWatcherModeSelected(mode) },
-                            shape = SegmentedButtonDefaults.itemShape(index, LeaderboardWatcherMode.entries.size),
-                            icon = {},
-                        ) {
+                        SegmentedButton(selected = state.watcherMode == mode, onClick = { onWatcherModeSelected(mode) }, shape = SegmentedButtonDefaults.itemShape(index, LeaderboardWatcherMode.entries.size), icon = {}) {
                             Icon(if (mode == LeaderboardWatcherMode.SOLO) Icons.Outlined.Person else Icons.Outlined.Groups, null, Modifier.size(16.dp))
                             Spacer(Modifier.width(5.dp))
                             Text(mode.label, fontSize = 11.sp)
@@ -74,21 +68,14 @@ fun LeaderboardScreen(
         item {
             SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
                 LeaderboardPeriod.entries.forEachIndexed { index, period ->
-                    SegmentedButton(
-                        selected = state.period == period,
-                        onClick = { onPeriodSelected(period) },
-                        shape = SegmentedButtonDefaults.itemShape(index, LeaderboardPeriod.entries.size),
-                        icon = {},
-                    ) { Text(period.label, fontSize = 10.sp) }
+                    SegmentedButton(selected = state.period == period, onClick = { onPeriodSelected(period) }, shape = SegmentedButtonDefaults.itemShape(index, LeaderboardPeriod.entries.size), icon = {}) {
+                        Text(period.label, fontSize = 10.sp)
+                    }
                 }
             }
         }
-        item {
-            MyLeaderboardStats(state)
-        }
-        items(state.entries, key = { "${it.rank}-${it.username}" }) { entry ->
-            LeaderboardEntry(entry)
-        }
+        item { MyLeaderboardStats(state) }
+        items(state.entries, key = { "${it.rank}-${it.username}" }) { entry -> LeaderboardEntry(entry) }
     }
 }
 
@@ -99,11 +86,7 @@ private fun MyLeaderboardStats(state: LeaderboardUiState) {
         LeaderboardCategory.SUPPORTER -> "${state.myStats.supportPoints} SP"
         LeaderboardCategory.ACHIEVEMENT -> "${state.myStats.achievements} achievement"
     }
-    Surface(
-        Modifier.fillMaxWidth(),
-        RoundedCornerShape(22.dp),
-        color = MaterialTheme.colorScheme.primaryContainer,
-    ) {
+    Surface(Modifier.fillMaxWidth(), RoundedCornerShape(22.dp), color = MaterialTheme.colorScheme.primaryContainer) {
         Column(Modifier.padding(16.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Column(Modifier.weight(1f)) {
