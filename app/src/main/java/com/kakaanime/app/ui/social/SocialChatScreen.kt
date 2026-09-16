@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
@@ -88,11 +89,12 @@ fun SocialChatScreen(
         }
 
         if (showEmojiRow) {
-            Row(
+            LazyRow(
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 4.dp),
                 horizontalArrangement = Arrangement.spacedBy(6.dp),
+                contentPadding = PaddingValues(horizontal = 2.dp),
             ) {
-                listOf("😀", "😂", "😍", "😭", "🔥", "❤️", "👍", "✨").forEach { emoji ->
+                items(listOf("😀", "😂", "😍", "😭", "🔥", "❤️", "👍", "✨")) { emoji ->
                     Surface(
                         onClick = { draft += emoji },
                         shape = RoundedCornerShape(14.dp),
