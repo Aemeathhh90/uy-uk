@@ -127,6 +127,7 @@ private fun KakaUiShell() {
                             onAnimeClick = { id ->
                                 demoHomeState().anime.firstOrNull { it.id == id }?.let { selectedAnime = it }
                             },
+                            onSupporterClick = {},
                         )
                         KakaTab.CALENDAR -> CalendarScreen(
                             state = demoCalendarState(),
@@ -172,6 +173,14 @@ private fun demoMyProfile(favorites: Set<String>) = ProfileUiState(
     favoriteCount = favorites.size,
     followingCount = 8,
     isSelf = true,
+    supportPoints = 127,
+    supporterLevel = "Senpai",
+    supporterLevelStartPoints = 75,
+    nextSupporterLevelPoints = 150,
+    nextSupporterReward = "Galaxy Border",
+    supporterTitle = "Kind Senpai",
+    supporterBadge = "Gifter",
+    supporterBorder = "Sakura",
 )
 
 private fun demoOtherProfile(userId: String) = ProfileUiState(
@@ -186,6 +195,14 @@ private fun demoOtherProfile(userId: String) = ProfileUiState(
     followingCount = 21,
     isSelf = false,
     isFollowing = false,
+    supportPoints = 74,
+    supporterLevel = "Supporter II",
+    supporterLevelStartPoints = 25,
+    nextSupporterLevelPoints = 75,
+    nextSupporterReward = "Supporter Badge II",
+    supporterTitle = "Supporter",
+    supporterBadge = "Supporter II",
+    supporterBorder = "Basic",
 )
 
 private fun demoDetail(anime: HomeAnimeUi) = AnimeDetailUi(
