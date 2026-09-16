@@ -258,7 +258,12 @@ private fun CreateWatchTogetherDialog(
                     leadingIcon = { Icon(Icons.Outlined.Lock, null, Modifier.size(17.dp)) },
                 )
             }
-            Text("Create Room hanya tersedia untuk Premium.", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(
+                if (isPremium) "Room siap dibuat. Pilih visibilitas lalu lanjutkan."
+                else "Create Room hanya tersedia untuk Premium.",
+                fontSize = 11.sp,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
                 OutlinedButton(onClick = onDismiss) { Text("Batal") }
                 Spacer(Modifier.width(8.dp))
