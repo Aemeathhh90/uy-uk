@@ -13,6 +13,7 @@ data class ProfileBadgeUi(
 data class ProfileUiState(
     val userId: String,
     val username: String,
+    val nickname: String = "",
     val bio: String = "",
     val status: String = "Online",
     val favorites: List<HomeAnimeUi> = emptyList(),
