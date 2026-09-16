@@ -2,6 +2,14 @@ package com.kakaanime.app.ui.profile
 
 import com.kakaanime.app.ui.home.HomeAnimeUi
 
+data class ProfileBadgeUi(
+    val id: String,
+    val name: String,
+    val description: String = "",
+    val isUnlocked: Boolean = false,
+    val isEquipped: Boolean = false,
+)
+
 data class ProfileUiState(
     val userId: String,
     val username: String,
@@ -22,4 +30,7 @@ data class ProfileUiState(
     val supporterTitle: String = "Supporter",
     val supporterBadge: String = "Supporter",
     val supporterBorder: String = "Basic",
+    val badges: List<ProfileBadgeUi> = emptyList(),
+    val equippedBadgeIds: Set<String> = emptySet(),
+    val maxEquippedBadges: Int = 5,
 )
