@@ -26,6 +26,9 @@ fun LeaderboardScreen(
     onWatcherModeSelected: (LeaderboardWatcherMode) -> Unit = {},
     onPeriodSelected: (LeaderboardPeriod) -> Unit = {},
 ) {
+    val watcherSoloSelected = state.watcherMode == LeaderboardWatcherMode.SOLO
+    val watcherTogetherSelected = state.watcherMode == LeaderboardWatcherMode.WATCH_TOGETHER
+
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(16.dp, 10.dp, 16.dp, 116.dp),
@@ -58,7 +61,7 @@ fun LeaderboardScreen(
         item {
             Column(verticalArrangement = Arrangement.spacedBy(7.dp)) {
                 Text("Watcher", fontSize = 13.sp, fontWeight = FontWeight.Bold)
-                Text("Mode waktu tonton yang dipakai untuk bagian Watcher.", fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text("Mode aktif menentukan statistik Watcher yang diprioritaskan.", fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
                     LeaderboardWatcherMode.entries.forEachIndexed { index, mode ->
                         SegmentedButton(
@@ -82,28 +85,34 @@ fun LeaderboardScreen(
 
         item { LeaderboardOverview(state) }
 
-        item {
-            LeaderboardPodiumSection(
-                title = "Watcher • Solo",
-                subtitle = "Waktu tonton Solo yang terverifikasi.",
-                icon = Icons.Outlined.Timer,
-                entries = demoFullEntries(FullLeaderboardCategory.WATCHER_SOLO),
-                myRank = 128,
-                myValue = state.myStats.soloWatchTime,
-                previousRank = 135,
-            )
+        if (watcherSoloSelected) {
+            item {
+                LeaderboardPodiumSection(
+                    title = "Watcher • Solo",
+                    subtitle = "Mode aktif • waktu tonton Solo yang terverifikasi.",
+                    icon = Icons.Outlined.Timer,
+                    entries = demoFullEntries(FullLeaderboardCategory.WATCHER_SOLO),
+                    myRank = 128,
+                    myValue = state.myStats.soloWatchTime,
+                    previousRank = 135,
+                    highlighted = true,
+                )
+            }
         }
 
-        item {
-            LeaderboardPodiumSection(
-                title = "Watcher • Watch Together",
-                subtitle = "Waktu tonton Watch Together dihitung per akun.",
-                icon = Icons.Outlined.Groups,
-                entries = demoFullEntries(FullLeaderboardCategory.WATCHER_TOGETHER),
-                myRank = 96,
-                myValue = state.myStats.watchTogetherTime,
-                previousRank = 101,
-            )
+        if (watcherTogetherSelected) {
+            item {
+                LeaderboardPodiumSection(
+                    title = "Watcher • Watch Together",
+                    subtitle = "Mode aktif • waktu tonton dihitung per akun.",
+                    icon = Icons.Outlined.Groups,
+                    entries = demoFullEntries(FullLeaderboardCategory.WATCHER_TOGETHER),
+                    myRank = 96,
+                    myValue = state.myStats.watchTogetherTime,
+                    previousRank = 101,
+                    highlighted = true,
+                )
+            }
         }
 
         item {
@@ -128,6 +137,30 @@ fun LeaderboardScreen(
                 myValue = "${state.myStats.achievements} achievement",
                 previousRank = 41,
             )
+        }
+
+        item {
+            if (watcherSoloSelected) {
+                LeaderboardPodiumSection(
+                    title = "Watcher • Watch Together",
+                    subtitle = "Mode lain • waktu tonton dihitung per akun.",
+                    icon = Icons.Outlined.Groups,
+                    entries = demoFullEntries(FullLeaderboardCategory.WATCHER_TOGETHER),
+                    myRank = 96,
+                    myValue = state.myStats.watchTogetherTime,
+                    previousRank = 101,
+                )
+            } else {
+                LeaderboardPodiumSection(
+                    title = "Watcher • Solo",
+                    subtitle = "Mode lain • waktu tonton Solo yang terverifikasi.",
+                    icon = Icons.Outlined.Timer,
+                    entries = demoFullEntries(FullLeaderboardCategory.WATCHER_SOLO),
+                    myRank = 128,
+                    myValue = state.myStats.soloWatchTime,
+                    previousRank = 135,
+                )
+            }
         }
     }
 }
@@ -164,14 +197,20 @@ private fun LeaderboardPodiumSection(
     myRank: Int,
     myValue: String,
     previousRank: Int?,
+    highlighted: Boolean = false,
 ) {
     val topThree = entries.take(3)
     val remaining = entries.drop(3)
+    val surfaceColor = if (highlighted) {
+        MaterialTheme.colorScheme.primaryContainer.copy(alpha = .72f)
+    } else {
+        MaterialTheme.colorScheme.surfaceVariant.copy(alpha = .30f)
+    }
 
     Surface(
         Modifier.fillMaxWidth(),
         RoundedCornerShape(24.dp),
-        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = .30f),
+        color = surfaceColor,
     ) {
         Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -184,6 +223,9 @@ private fun LeaderboardPodiumSection(
                 Column(Modifier.weight(1f)) {
                     Text(title, fontSize = 16.sp, fontWeight = FontWeight.ExtraBold)
                     Text(subtitle, fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+                if (highlighted) {
+                    Text("Aktif", fontSize = 9.sp, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
                 }
             }
 
