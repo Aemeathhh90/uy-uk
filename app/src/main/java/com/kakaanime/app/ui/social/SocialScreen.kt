@@ -38,7 +38,7 @@ fun SocialScreen(
             WatchTogetherScreen(
                 state = demoWatchTogetherState(),
                 onBack = { watchTogetherOpen = false },
-                onCreateRoom = { visibility -> activeRoom = demoWatchTogetherRoom(visibility) },
+                onCreateRoom = { visibility -> activeRoom = demoWatchTogetherRoom(visibility, state.username) },
                 onJoinByCode = { activeRoom = demoWatchTogetherPrivateRoom(it) },
                 onJoinRoom = { activeRoom = it.copy(participants = it.participants + WatchTogetherParticipantUi("self", state.username, "Watching", false)) },
                 onPremiumClick = onWatchTogetherClick,
@@ -125,15 +125,18 @@ private fun demoWatchTogetherState() = WatchTogetherUiState(
     ),
 )
 
-private fun demoWatchTogetherRoom(visibility: WatchTogetherVisibility) = WatchTogetherRoomUi(
+private fun demoWatchTogetherRoom(
+    visibility: WatchTogetherVisibility,
+    username: String,
+) = WatchTogetherRoomUi(
     id = "local-room",
     name = "Room Saya",
     animeTitle = "One Piece",
     episode = 1150,
     visibility = visibility,
-    hostName = "Akun Saya",
+    hostName = username,
     roomCode = if (visibility == WatchTogetherVisibility.PRIVATE) "KA7X2P" else "",
-    participants = listOf(WatchTogetherParticipantUi("self", "Akun Saya", "Host", true)),
+    participants = listOf(WatchTogetherParticipantUi("self", username, "Host", true)),
 )
 
 private fun demoWatchTogetherPrivateRoom(code: String) = WatchTogetherRoomUi(
