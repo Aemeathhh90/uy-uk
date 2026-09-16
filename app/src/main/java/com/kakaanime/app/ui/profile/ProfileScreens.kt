@@ -212,7 +212,12 @@ private fun SupporterCard(state: ProfileUiState) {
     val progress = ((state.supportPoints - state.supporterLevelStartPoints).toFloat() / range).coerceIn(0f, 1f)
     val remaining = (state.nextSupporterLevelPoints - state.supportPoints).coerceAtLeast(0)
     val isMaxLevel = state.nextSupporterLevelPoints <= state.supporterLevelStartPoints || remaining == 0
-    Surface(onClick = {}, Modifier.fillMaxWidth(), RoundedCornerShape(22.dp), color = MaterialTheme.colorScheme.primary.copy(alpha = .10f), tonalElevation = 1.dp) {
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(22.dp),
+        color = MaterialTheme.colorScheme.primary.copy(alpha = .10f),
+        tonalElevation = 1.dp,
+    ) {
         Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text("Kaka Supporter", fontSize = 16.sp, fontWeight = FontWeight.ExtraBold, modifier = Modifier.weight(1f))
