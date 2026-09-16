@@ -218,36 +218,37 @@ private fun KakaUiShell(themeState: KakaThemeState) {
                         KakaDestination.Calendar -> CalendarScreen(state = demoCalendarState(), onAnimeClick = { selectedAnime = it })
                     }
                 }
-            } else {
-                AnimatedVisibility(
-                    visible = true,
-                    enter = KakaMotion.modalEnterTransition,
-                    exit = KakaMotion.modalExitTransition,
-                ) {
-                    when (overlay) {
-                        OverlayScreen.NOTIFICATIONS -> NotificationCenterScreen(
-                            state = notifications,
-                            onBack = { overlay = null },
-                            onNotificationClick = { notification ->
-                                notification.animeId?.let { id -> demoHomeState().anime.firstOrNull { it.id == id }?.let { selectedAnime = it } }
-                                notifications = NotificationUiState(notifications.notifications.map { if (it.id == notification.id) it.copy(isUnread = false) else it })
-                                overlay = null
-                            },
-                            onMarkAllRead = { notifications = NotificationUiState(notifications.notifications.map { it.copy(isUnread = false) }) },
-                        )
-                        OverlayScreen.EDIT_PROFILE -> EditProfileScreen(
-                            state = profile,
-                            onBack = { overlay = null },
-                            onSave = { profile = it; overlay = null },
-                        )
-                        OverlayScreen.THEME -> ThemeCustomizationScreen(
-                            state = themeState,
-                            onBack = { overlay = null },
-                        )
-                        null -> Unit
-                    }
+            }
+
+            AnimatedVisibility(
+                visible = overlay != null,
+                enter = KakaMotion.modalEnterTransition,
+                exit = KakaMotion.modalExitTransition,
+            ) {
+                when (overlay) {
+                    OverlayScreen.NOTIFICATIONS -> NotificationCenterScreen(
+                        state = notifications,
+                        onBack = { overlay = null },
+                        onNotificationClick = { notification ->
+                            notification.animeId?.let { id -> demoHomeState().anime.firstOrNull { it.id == id }?.let { selectedAnime = it } }
+                            notifications = NotificationUiState(notifications.notifications.map { if (it.id == notification.id) it.copy(isUnread = false) else it })
+                            overlay = null
+                        },
+                        onMarkAllRead = { notifications = NotificationUiState(notifications.notifications.map { it.copy(isUnread = false) }) },
+                    )
+                    OverlayScreen.EDIT_PROFILE -> EditProfileScreen(
+                        state = profile,
+                        onBack = { overlay = null },
+                        onSave = { profile = it; overlay = null },
+                    )
+                    OverlayScreen.THEME -> ThemeCustomizationScreen(
+                        state = themeState,
+                        onBack = { overlay = null },
+                    )
+                    null -> Unit
                 }
             }
+
             gateReason?.let { reason ->
                 Dialog(onDismissRequest = { gateReason = null }) {
                     AnimatedVisibility(
