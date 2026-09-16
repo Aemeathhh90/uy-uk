@@ -10,7 +10,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.CardMembership
-import androidx.compose.material.icons.outlined.Diamond
+import androidx.compose.material.icons.outlined.Key
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -62,7 +62,7 @@ fun EpisodeGateDialog(
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
             Icon(
-                if (isDiamondGate) Icons.Outlined.Diamond else Icons.Outlined.CardMembership,
+                if (isDiamondGate) Icons.Outlined.Key else Icons.Outlined.CardMembership,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.primary,
             )
@@ -75,7 +75,7 @@ fun EpisodeGateDialog(
 
             Text(
                 when (reason) {
-                    EpisodeAccessReason.NO_DIAMONDS -> "Butuh $diamondCost diamond untuk membuka episode ini."
+                    EpisodeAccessReason.NO_DIAMONDS -> "Butuh $diamondCost Key untuk membuka episode ini."
                     EpisodeAccessReason.PREMIUM_QUALITY -> "Kualitas 1080p hanya tersedia untuk Premium."
                     EpisodeAccessReason.PREMIUM_FEATURE -> "Auto skip intro/outro hanya tersedia untuk Premium."
                 },
@@ -85,7 +85,7 @@ fun EpisodeGateDialog(
 
             if (isDiamondGate) {
                 Button(onClick = onWatchAd, modifier = Modifier.fillMaxWidth()) {
-                    Text("Tonton Iklan • +2 Diamond")
+                    Text("Tonton Iklan • +2 Key")
                 }
             } else {
                 Button(onClick = onPremiumClick, modifier = Modifier.fillMaxWidth()) {
