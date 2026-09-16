@@ -3,6 +3,7 @@ package com.kakaanime.app.ui.notifications
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -29,7 +30,9 @@ fun NotificationCenterScreen(
     onMarkAllRead: () -> Unit = {},
 ) {
     Column(
-        modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 16.dp, vertical = 12.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         Row(
@@ -53,7 +56,9 @@ fun NotificationCenterScreen(
 
         if (state.notifications.isEmpty()) {
             Surface(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f),
                 color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = .45f),
                 shape = MaterialTheme.shapes.large,
             ) {
@@ -71,7 +76,11 @@ fun NotificationCenterScreen(
                 }
             }
         } else {
-            LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            LazyColumn(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(10.dp),
+                contentPadding = androidx.compose.foundation.layout.PaddingValues(bottom = 8.dp),
+            ) {
                 items(state.notifications, key = { it.id }) { notification ->
                     NotificationRow(notification, onNotificationClick)
                 }
