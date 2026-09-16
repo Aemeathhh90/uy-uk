@@ -87,7 +87,7 @@ fun HomeV1Screen(
     Box(Modifier.fillMaxSize()) {
         LazyColumn(
             modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background),
-            contentPadding = PaddingValues(16.dp, 10.dp, 16.dp, 116.dp),
+            contentPadding = PaddingValues(16.dp, 10.dp, 16.dp, 24.dp),
             verticalArrangement = Arrangement.spacedBy(18.dp),
         ) {
             item { HomeTopBar(query, { query = it }, showFilters, { showFilters = !showFilters }, onNotificationsClick) }
