@@ -1,5 +1,7 @@
 package com.kakaanime.app
 
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -14,6 +16,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -27,7 +30,7 @@ fun KakaBottomNavigation(selectedTab: KakaTab, onTabSelected: (KakaTab) -> Unit)
         KakaTab.CALENDAR to ("Calendar" to Icons.Outlined.CalendarMonth),
         KakaTab.SOCIAL to ("Social" to Icons.Outlined.Groups),
         KakaTab.LIBRARY to ("Library" to Icons.Outlined.CollectionsBookmark),
-        KakaTab.PROFILE to ("Profile" to Icons.Outlined.Person)
+        KakaTab.PROFILE to ("Profile" to Icons.Outlined.Person),
     )
 
     Surface(
@@ -38,33 +41,59 @@ fun KakaBottomNavigation(selectedTab: KakaTab, onTabSelected: (KakaTab) -> Unit)
         shape = RoundedCornerShape(26.dp),
         color = MaterialTheme.colorScheme.surface.copy(alpha = .96f),
         tonalElevation = 6.dp,
-        shadowElevation = 10.dp
+        shadowElevation = 10.dp,
     ) {
         Row(
-            modifier = Modifier.fillMaxWidth().padding(6.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(6.dp),
             horizontalArrangement = Arrangement.SpaceEvenly,
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             items.forEach { (tab, item) ->
                 val selected = selectedTab == tab
-                Column(
+                val containerColor by animateColorAsState(
+                    targetValue = if (selected) {
+                        MaterialTheme.colorScheme.primaryContainer.copy(alpha = .72f)
+                    } else {
+                        androidx.compose.ui.graphics.Color.Transparent
+                    },
+                    animationSpec = tween(180),
+                    label = "navContainer",
+                )
+                val contentColor by animateColorAsState(
+                    targetValue = if (selected) {
+                        MaterialTheme.colorScheme.onPrimaryContainer
+                    } else {
+                        MaterialTheme.colorScheme.onSurfaceVariant
+                    },
+                    animationSpec = tween(180),
+                    label = "navContent",
+                )
+
+                Surface(
                     modifier = Modifier
                         .weight(1f)
-                        .clickable { onTabSelected(tab) }
-                        .padding(vertical = 5.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
+                        .clickable { onTabSelected(tab) },
+                    shape = RoundedCornerShape(20.dp),
+                    color = containerColor,
                 ) {
-                    Icon(
-                        imageVector = item.second,
-                        contentDescription = item.first,
-                        tint = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.size(23.dp)
-                    )
-                    Text(
-                        text = item.first,
-                        style = MaterialTheme.typography.labelMedium,
-                        color = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                    Column(
+                        modifier = Modifier.padding(vertical = 5.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                    ) {
+                        Icon(
+                            imageVector = item.second,
+                            contentDescription = item.first,
+                            tint = contentColor,
+                            modifier = Modifier.size(23.dp),
+                        )
+                        Text(
+                            text = item.first,
+                            style = MaterialTheme.typography.labelMedium,
+                            color = contentColor,
+                        )
+                    }
                 }
             }
         }
