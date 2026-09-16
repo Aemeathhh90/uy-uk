@@ -14,4 +14,6 @@ data class ProfileUiState(
     val followingCount: Int = 0,
     val isSelf: Boolean = false,
     val isFollowing: Boolean = false,
+    // Nickname is the public display name; username remains the unique handle.
+    val nickname: String = "",
 )
