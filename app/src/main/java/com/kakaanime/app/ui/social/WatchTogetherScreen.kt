@@ -45,6 +45,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.kakaanime.app.ui.monetization.DiamondPremiumScreen
+import com.kakaanime.app.ui.monetization.MonetizationUiState
 
 @Composable
 fun WatchTogetherScreen(
@@ -57,6 +59,7 @@ fun WatchTogetherScreen(
 ) {
     var showCreate by remember { mutableStateOf(false) }
     var roomCode by remember { mutableStateOf("") }
+    var showPremium by remember { mutableStateOf(false) }
 
     Box(Modifier.fillMaxSize()) {
         Column(Modifier.fillMaxSize()) {
@@ -80,7 +83,7 @@ fun WatchTogetherScreen(
                 item {
                     CreateRoomCard(
                         isPremium = state.isPremium,
-                        onClick = { if (state.isPremium) showCreate = true else onPremiumClick() },
+                        onClick = { if (state.isPremium) showCreate = true else showPremium = true },
                     )
                 }
                 item {
@@ -138,12 +141,37 @@ fun WatchTogetherScreen(
                 CreateWatchTogetherDialog(
                     isPremium = state.isPremium,
                     onDismiss = { showCreate = false },
-                    onPremiumClick = onPremiumClick,
+                    onPremiumClick = { showCreate = false; showPremium = true },
                     onCreate = {
                         onCreateRoom(it)
                         showCreate = false
                     },
                 )
+            }
+        }
+
+        if (showPremium) {
+            Box(
+                Modifier.fillMaxSize()
+                    .background(MaterialTheme.colorScheme.scrim.copy(alpha = .62f)),
+            ) {
+                Column(Modifier.fillMaxSize()) {
+                    Row(
+                        Modifier.fillMaxWidth().padding(horizontal = 6.dp, vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        IconButton(onClick = { showPremium = false }) { Icon(Icons.Outlined.ArrowBack, "Kembali") }
+                        Column(Modifier.weight(1f)) {
+                            Text("Premium", fontSize = 20.sp, fontWeight = FontWeight.ExtraBold)
+                            Text("Upgrade untuk membuka fitur Premium.", fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                    }
+                    DiamondPremiumScreen(
+                        state = MonetizationUiState(diamonds = 6, isPremium = false),
+                        onWatchAd = {},
+                        onPremiumClick = { onPremiumClick() },
+                    )
+                }
             }
         }
     }
