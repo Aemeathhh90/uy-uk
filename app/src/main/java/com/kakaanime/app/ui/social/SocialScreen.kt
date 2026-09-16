@@ -19,6 +19,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
@@ -32,6 +34,7 @@ fun SocialScreen(
 ) {
     var watchTogetherOpen by remember { mutableStateOf(false) }
     var activeRoom by remember { mutableStateOf<WatchTogetherRoomUi?>(null) }
+    val clipboardManager = LocalClipboardManager.current
 
     if (watchTogetherOpen) {
         if (activeRoom == null) {
@@ -49,6 +52,7 @@ fun SocialScreen(
                 isHost = activeRoom!!.hostName == state.username,
                 onBack = { activeRoom = null },
                 onLeave = { activeRoom = null },
+                onCopyRoomCode = { clipboardManager.setText(AnnotatedString(it)) },
             )
         }
         return
