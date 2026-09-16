@@ -1,6 +1,9 @@
 name: Android Build
 
 on:
+  push:
+    branches:
+      - ui33-premium-hub
   workflow_dispatch:
 
 permissions:
