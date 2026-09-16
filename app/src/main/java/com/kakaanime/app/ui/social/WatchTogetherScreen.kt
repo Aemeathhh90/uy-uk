@@ -191,18 +191,9 @@ fun WatchTogetherScreen(
                     exit = KakaMotion.modalExitTransition,
                 ) {
                     Column(Modifier.fillMaxSize()) {
-                        Row(
-                            Modifier.fillMaxWidth().padding(horizontal = 6.dp, vertical = 8.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            IconButton(onClick = { showPremium = false }) { Icon(Icons.Outlined.ArrowBack, "Kembali") }
-                            Column(Modifier.weight(1f)) {
-                                Text("Premium", fontSize = 20.sp, fontWeight = FontWeight.ExtraBold)
-                                Text("Upgrade untuk membuka fitur Premium.", fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                            }
-                        }
                         DiamondPremiumScreen(
                             state = MonetizationUiState(diamonds = 6, isPremium = false),
+                            onBack = { showPremium = false },
                             onWatchAd = {},
                             onPremiumClick = { onPremiumClick() },
                         )
