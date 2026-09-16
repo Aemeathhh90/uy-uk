@@ -27,7 +27,6 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -77,6 +76,14 @@ fun HomeV1Screen(
         }
     }
 
+    val newEpisodes = remember(state.anime) {
+        state.anime.filter { it.isNew }.ifEmpty { state.anime.sortedByDescending { it.latestEpisode } }
+    }
+    val ongoing = remember(state.anime) { state.anime.filter { it.status.equals("Ongoing", true) } }
+    val finished = remember(state.anime) {
+        state.anime.filter { it.status.equals("Finished", true) || it.status.equals("Tamat", true) }
+    }
+
     Box(Modifier.fillMaxSize()) {
         LazyColumn(
             modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background),
@@ -92,8 +99,9 @@ fun HomeV1Screen(
             item { HomeProfileHeader(state.username, state.avatarUrl, state.diamonds, state.isPremium, onProfileClick, onDiamondClick, onPremiumClick, onWatchTogetherClick) }
             if (query.isBlank()) {
                 if (state.continueWatching.isNotEmpty()) item { HomeContinueSection(state.continueWatching, onContinueWatchingClick) }
-                item { HomeAnimeSection("New Updates", state.anime.filter { it.isNew }.ifEmpty { state.anime.sortedByDescending { it.latestEpisode } }, onAnimeClick, "NEW") }
-                item { HomeAnimeSection("Trending Now", state.anime, onAnimeClick) }
+                item { HomeAnimeSection("New Episode", newEpisodes, onAnimeClick) }
+                item { HomeAnimeSection("Ongoing", ongoing, onAnimeClick) }
+                item { HomeAnimeSection("Anime Tamat", finished, onAnimeClick) }
             } else item {
                 if (filtered.isEmpty()) Surface(Modifier.fillMaxWidth(), RoundedCornerShape(18.dp), color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = .45f)) { Text("Anime tidak ditemukan", Modifier.padding(18.dp), color = MaterialTheme.colorScheme.onSurfaceVariant) }
                 else HomeAnimeSection("Hasil Pencarian", filtered, onAnimeClick = onAnimeClick)
@@ -188,10 +196,17 @@ private fun HomeContinueSection(entries: List<ContinueWatchingUi>, onClick: (Con
 }
 
 @Composable
-private fun HomeAnimeSection(title: String, anime: List<HomeAnimeUi>, onAnimeClick: (HomeAnimeUi) -> Unit, badge: String? = null) {
+private fun HomeAnimeSection(title: String, anime: List<HomeAnimeUi>, onAnimeClick: (HomeAnimeUi) -> Unit) {
     if (anime.isEmpty()) return
     Column { HomeSectionHeader(title); Spacer(Modifier.height(9.dp)); LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp), contentPadding = PaddingValues(end = 8.dp)) {
         items(anime, key = { it.id }) { item ->
+            val badge = when {
+                item.isNew -> "NEW EP"
+                item.status.equals("Ongoing", true) -> "ONGOING"
+                item.status.equals("Hiatus", true) -> "HIATUS"
+                item.status.equals("Finished", true) || item.status.equals("Tamat", true) -> "TAMAT"
+                else -> null
+            }
             Column(Modifier.width(136.dp).clickable { onAnimeClick(item) }) {
                 Box(Modifier.fillMaxWidth().height(184.dp).clip(RoundedCornerShape(16.dp)).background(MaterialTheme.colorScheme.surfaceVariant)) {
                     if (item.posterUrl != null) AsyncImage(item.posterUrl, item.title, Modifier.fillMaxSize(), contentScale = ContentScale.Crop) else Text("POSTER", Modifier.align(Alignment.Center), fontSize = 9.sp, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
