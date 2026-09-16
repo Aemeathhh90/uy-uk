@@ -55,6 +55,31 @@ fun LeaderboardScreen(
             }
         }
 
+        item {
+            Column(verticalArrangement = Arrangement.spacedBy(7.dp)) {
+                Text("Watcher", fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                Text("Mode waktu tonton yang dipakai untuk bagian Watcher.", fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
+                    LeaderboardWatcherMode.entries.forEachIndexed { index, mode ->
+                        SegmentedButton(
+                            selected = state.watcherMode == mode,
+                            onClick = { onWatcherModeSelected(mode) },
+                            shape = SegmentedButtonDefaults.itemShape(index, LeaderboardWatcherMode.entries.size),
+                            icon = {},
+                        ) {
+                            Icon(
+                                if (mode == LeaderboardWatcherMode.SOLO) Icons.Outlined.Timer else Icons.Outlined.Groups,
+                                null,
+                                Modifier.size(16.dp),
+                            )
+                            Spacer(Modifier.width(5.dp))
+                            Text(mode.label, fontSize = 10.sp)
+                        }
+                    }
+                }
+            }
+        }
+
         item { LeaderboardOverview(state) }
 
         item {
