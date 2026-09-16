@@ -12,7 +12,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.CheckCircle
-import androidx.compose.material.icons.outlined.Diamond
+import androidx.compose.material.icons.outlined.Key
 import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.WorkspacePremium
 import androidx.compose.material3.Button
@@ -80,14 +80,14 @@ fun PremiumScreen(
 
         Surface(Modifier.fillMaxWidth(), RoundedCornerShape(18.dp)) {
             Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Outlined.Diamond, null, tint = MaterialTheme.colorScheme.primary)
+                Icon(Icons.Outlined.Key, null, tint = MaterialTheme.colorScheme.primary)
                 Spacer(Modifier.width(10.dp))
                 Column(Modifier.weight(1f)) {
-                    Text("${state.diamonds} Diamond", fontWeight = FontWeight.Bold)
-                    Text("${state.videoDiamondCost} diamond = 1 video untuk pengguna gratis", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text("${state.diamonds} Key", fontWeight = FontWeight.Bold)
+                    Text("${state.videoDiamondCost} Key = 1 video untuk pengguna gratis", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
                 if (!state.isPremium) {
-                    OutlinedButton(onClick = onWatchAd) { Text("+${state.adDiamondReward}") }
+                    OutlinedButton(onClick = onWatchAd) { Text("+${state.adDiamondReward} Key") }
                 }
             }
         }
@@ -95,7 +95,7 @@ fun PremiumScreen(
         Text("Yang kamu dapat", fontWeight = FontWeight.Bold, fontSize = 16.sp)
         PremiumBenefit("1080p", "Kualitas hingga 1080p", enabled = true)
         PremiumBenefit("Auto Skip", "Lewati intro/outro secara otomatis", enabled = true)
-        PremiumBenefit("Tanpa Diamond", "Nonton tanpa biaya diamond per episode", enabled = true)
+        PremiumBenefit("Tanpa Key", "Nonton tanpa biaya Key per episode", enabled = true)
         PremiumBenefit("Appearance", "Akses penuh kustomisasi tampilan Premium", enabled = true)
         PremiumBenefit("Watch Together", "Buat room Watch Together", enabled = true)
 
